@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="popup.css">
+    </head>
+    <body>
+        <section class="logo">
+            <h3>Schedule Maker 1.0</h3>
+        </section>
+        <section class="current">
+            <div class="top-bar welcome" style="display: none;">
+                <div class="greeting">Hello, Emily</div>
+                <div class="info">
+                    <div id="date"></div>
+                    <div id="time"></div>
+                </div>
+            </div>
+            <div class="working top-bar">
+                <!--how do i do a timer?-->
+                <div class="clock">timer</div>
+                <div class="activity">activity</div>
+                <div class="box"><button class="check-box"></button></div>
+            </div>
+        </section>
+        <section class="table">
+            <div class="table-bar">
+                <button id="start" class="start_stop">start</button> <!--can be toggled?-->
+                <button id="new">new</button>
+            </div>
+            
+            <table id="schedule">
+                <tr>
+                    <th>done?</th>
+                    <th>Start</th>
+                    <th>Activity</th>
+                    <th id="len">length (min)</th>
+                    <th class="edit">edit</th>
+                </tr>
+                <tr class="row" draggable="true">
+                    <td><button class="check-box"></button></td>
+                    <td class="start-cell">6:30</td>
+                    <td><input class="activity-cell" type="text" id="test" placeholder="poop"></td>
+                    <td><input class="length-cell" type="number" min="1" placeholder="5"></td>
+                    <td class="edit"><button>edit</button></td>
+                </tr>
+                <!--<tr class="row" draggable="true">
+                    <td><button class="check-box"></button></td>
+                    <td class="start-cell"></td>
+                    <td><input class="activity-cell" type="text" id="test"></td>
+                    <td><input class="length-cell" type="number" min="1" placeholder="20"></td>
+                    <td class="edit"></td>
+                </tr>-->
+            </table>
+        </section>
+
+        <script src="popup.js" charset="utf-8"></script>
+    </body>
+</html>

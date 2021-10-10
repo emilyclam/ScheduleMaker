@@ -1,0 +1,17 @@
+{
+    "name": "schedule maker",
+    "description": "Schedule maker and a timer. Hopefully will increase productivity!",
+    "version": "1.0",
+    "manifest_version": 3,
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "permissions": [
+        "storage",
+        "alarms"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    }
+    
+}

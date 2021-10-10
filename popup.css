@@ -1,0 +1,203 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 600px;
+    height: 400px;
+    padding: 30px;
+}
+
+button {
+    border: none;
+    padding: 5px 15px;
+    color: white;
+}
+
+.check-box {
+    background-color: white;
+    border: gray solid 1px;
+    width: 30px;
+    height: 30px
+}
+
+.checked {
+    background-color: skyblue;
+}
+
+.box .check-box:hover {
+    background-color: lightgray;
+}
+
+input {
+    background-color: inherit;
+    font-family: inherit;
+    border: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    min-width: 0;
+}
+
+input:focus {
+    border: none;
+    outline:none;
+    background-color:lightskyblue;
+}
+
+input::placeholder {
+    color: inherit;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+/* SECTION: LOGO */
+.logo {
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: gray;
+}
+
+/* SECTION: CURRENT BAR */
+.current {
+    margin: 20px 0;
+    position: sticky;
+    top: 20px;
+    background-color: lightgray;
+    font-size: 20px;
+    padding: 5px;
+    height: 50px;
+}
+
+.top-bar {
+    display: flex;
+    align-items: center;
+}
+
+.top-bar div {
+    margin: 5px;
+    padding: 5px;
+}
+
+/* WELCOME MODE */
+.welcome {
+    align-items:center;
+}
+
+.greeting {
+    text-transform: uppercase;
+    font-weight: bold;
+    color: rgb(105, 105, 105);
+    letter-spacing: 2px;
+    float: left;
+}
+
+.info {
+    font-size: 15px;
+    float: right;
+}
+
+/* WORKING MODE */
+
+.current .clock {
+    width: 100px;
+    background-color: gray;
+    text-align: center;
+    color: white;
+}
+
+.current .activity {
+   width: 300px;
+}
+
+.current .check-box {
+    width: 50px;
+}
+
+
+/* SECTION: TABLE HEADER */
+.start_stop {
+    float: left;
+    background-color: rgb(95, 224, 95);
+    width: 83%;
+}
+
+.start_stop:hover {
+    background-color: lightgreen;
+}
+
+/*for the green start button*/
+.running {
+    background-color: lightgreen;
+}
+
+#new {
+    float: right;
+    background-color: rgb(76, 197, 245);
+    width: 15%;
+}
+
+#new:hover {
+    background-color: lightskyblue;
+}
+
+#schedule {
+    width: 100%;
+    padding: 10px 5px;
+    text-align: left;
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+
+/* SECTION: TABLE */
+
+th {
+    border-bottom: gray solid 1px;
+}
+
+td {
+    border-bottom: gray solid 1px;
+    padding: 5px;
+    height: 30px;
+    
+}
+
+td .length-cell {
+    width: 100px;
+}
+
+td:hover {
+    background-color: lightskyblue;
+}
+
+.current-row {
+    background-color: lightskyblue;
+}
+
+.completed-row {
+    opacity: 0.5;
+}
+
+.edit {
+    border: none;
+}
+
+.edit:hover {
+    background-color: inherit;
+}
+
+.edit button {
+    display: none;
+    background-color: lightgrey;
+}
+
+.edit button:hover {
+    background-color: gray;
+}
+
+#len {
+    width: 30px;
+}
+
