@@ -19,7 +19,8 @@
  * X ISSUE: when the start button is pressed more than once, it freaks out (instead of pausing)
  * X when the start button doesn't have the class .checked, remove the set interval but save the time
  * X how do i make the values save? after the user exits out of the popup, all the data disappears
- * - make the timer run in the background (script)
+ * X make the timer run in the background (script)
+ * X the info on the timer saves when you close an come back
  * - ui/ux = what happens when the timer reaches 0?
  * X---> alarm sounds!
  * ---> there's a popup that covers the entire window that asks if you're done. (done or continue working). 
@@ -66,6 +67,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     alert("reply" + request.reply)
 })*/
 
+curr_clock = document.getElementsByClassName('clock')[0];
+
+
+chrome.runtime.onConnect.addListener((port) => {
+    port.onMessage.addListener((response) => {
+        curr_clock.innerHTML = response.time;
+    })
+})
+
 
 /**
  * UNPACK DATA
@@ -73,9 +83,20 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
  * the names of all the variables will be standardized
  */
 
+
+
+// data table
 chrome.storage.sync.get('whole', function(data) {
     //document.getElementById("schedule").innerHTML = data.whole;
 })
+
+// activity
+chrome.storage.sync.get('activity', function(data) {
+    document.getElementsByClassName('activity')[0].innerHTML = data.activity;
+})
+
+
+
 
 let sound = new Audio(chrome.runtime.getURL("bell.wav"))
 sound.play()
@@ -248,40 +269,6 @@ function checkBoxes () {
 }
 
 
-
-/**
- * COUNTDOWN TIMER
- */
-
-// duration in seconds
-function startTimer(duration, display) {
-    let timer = duration;
-    let minutes, seconds;
-    function tick() {
-        minutes = Math.floor(parseInt(timer, 10) / 60);
-        seconds = parseInt(timer, 10) % 60;
-
-        minutes = minutes < 10 ? '0'+minutes : minutes;
-        seconds = seconds < 10 ? '0'+seconds : seconds;
-        display.innerHTML = minutes + ":" + seconds;
-
-        // reset the timer if it reaches 0?
-        if (timer <= 0) {
-            //timer = duration;
-            timer = 0
-            sound.play()
-        }
-        else {
-            timer--;
-        }
-
-    }
-
-    tick();
-    //clearInterval(this_timer)
-    return setInterval(tick, 100);
-}
-
 /**
  * START BUTTON
  */
@@ -301,18 +288,23 @@ function decideRow() {
 let go_btn = document.getElementsByClassName("start_stop")[0];
 let first = true
 
-// idk if this will work but:
-let this_timer = setInterval(function(){}, 0)
+
 go_btn.onclick = () => {
 
     // pause
     if (go_btn.classList.contains('running')) {
-        clearInterval(this_timer)
+        
+        // will need to send a message to the bg script to pause the timer
+        chrome.runtime.sendMessage({time: 'stop'});
+
+
         go_btn.classList.remove('running')
+        chrome.storage.sync.set({'state': 'paused'})
         return;
     }
 
     // unpause/start
+    chrome.storage.sync.set({'state': 'running'})
 
     // check if all inputs are filled out (value/placeholder != none)
     let cells = document.getElementsByTagName("input")
@@ -332,54 +324,22 @@ go_btn.onclick = () => {
     go_btn.classList.toggle("running");  // start button
     this_row.classList.toggle("current-row");
 
-    // hey
-
     // and change the innerHTML of the bar at the top to match this_row
     let this_length = this_row.getElementsByClassName("length-cell")[0];
     curr_act.innerHTML = this_row.getElementsByClassName("activity-cell")[0].placeholder;
+
+    // save the current activity in storage
+    chrome.storage.sync.set({'activity': curr_act.innerHTML});
+
     if (first) {
         curr_clock.innerHTML = timeNotation(parseInt(this_length.placeholder, 10)*60);
     }
 
 
-
-
-
     // send a message to the bg script
-    chrome.runtime.sendMessage({time: curr_clock.innerHTML}, (response) => {
-        alert(response.time)
-    });
+    chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});
 
-
-
-
-
-
-    this_timer = startTimer(getSeconds(curr_clock.innerHTML), curr_clock)
-    // start-cell = current time when you pressed the button
     
     first = false
-}
-
-// idk maybe later if i try to clean things up ill figure out hwo to fit this in
-// time object: minutes, seconds, total seconds, time notation
-class Time {
-    constructor(minutes) {
-        this.time = minutes*60;
-        this.mins = minutes;
-        this.secs = minutes*60;
-        this.string = this.getTimeNotation()
-    }
-
-    tick() {
-        this.time--;
-    }
-
-    getTimeNotation() {
-        let m = this.mins < 10 ? '0' + this.mins : this.mins;
-        let s = this.secs < 10 ? '0' + this.secs : this.secs;
-        this.string = m + ":" + s;
-    }
-
 }
 
