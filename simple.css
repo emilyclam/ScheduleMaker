@@ -1,0 +1,99 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: lightgray;
+    width: 250px;
+    height: 180px;
+}
+
+button {
+    border: none;
+    padding: 5px;
+    color: white;
+    background-color: darkgray;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+button:hover {
+    cursor: pointer;    
+}
+
+.content {
+    margin: 15px auto;
+    width: 70%;
+    text-align: center;
+}
+
+.controls {
+    margin: auto;
+    width: 90%;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#back, #next {
+    width: 30%;
+}
+
+.controls button {
+    background-color: darkgray;
+    margin: 5px 0px;
+    font-weight: bold;
+    padding: 4px 6px;
+    font-size: 10px;
+    letter-spacing: normal;
+}
+
+#back {
+    background-color: lightcoral;
+}
+
+#next {
+    background: lightgreen;
+}
+
+.timer {
+    font-size: 60px;
+    color: darkgray;
+    text-align: center;
+    letter-spacing: 4px;
+    line-height: 4rem;
+    margin-bottom: 15px;
+}
+
+.activity {
+    font-size: 12px;
+    padding: 2px 0;
+    color: darkgray;
+    width: 100%;
+    border: 1px solid darkgray;
+    margin: 5px 0;
+    text-align: center;
+}
+
+.mark {
+    display: flex;
+}
+
+.mark button {
+    width: 50%;
+    
+}
+
+#comp {
+    background-color: lightgreen;
+}
+
+#incomp {
+    
+}
+
+#open-schedule {
+    width: 100%;
+    margin-top: 5px;
+}

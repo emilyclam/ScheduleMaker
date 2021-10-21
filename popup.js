@@ -23,13 +23,13 @@
  * X the info on the timer saves when you close an come back
  * - ui/ux = what happens when the timer reaches 0?
  * X---> alarm sounds!
- * ---> there's a popup that covers the entire window that asks if you're done. (done or continue working). 
+ * X---> there's a popup that covers the entire window that asks if you're done. (done or continue working). 
  * ---> if you press continue, it asks you to set another timer.
- * ---> if you press done, then it checks that box off (add .checked to it) and starts the next activity?
+ * ---> if you press done, then it checks that box off (add .checked to it) and asks if you want to start the next activity?
  * ---> also, when you press done, it records the actual length of the activity? 
  * - how can i make all values automatically save once you press new? (so you don't have to press enter everytime)
  * X add in the "dashboard" in the beginning.
- * - make the welcome bar look better
+ * - make the items moveable!
  * 
  * 
  * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
@@ -48,6 +48,7 @@
  *      - in order to make the field unedittable, set the placeholder value and then do: disabled="true"
  * - right now the current bar's opacity also changes when the checkbox is chekced... figure out if i'm okay with this
  * - user is able to choose the sound of the alarm 
+ * - the welcome bar --
 */
 
 
@@ -82,8 +83,6 @@ chrome.runtime.onConnect.addListener((port) => {
  * unpack all of the data in the storage and put it in the table
  * the names of all the variables will be standardized
  */
-
-
 
 // data table
 chrome.storage.sync.get('whole', function(data) {
@@ -254,7 +253,6 @@ function setStart(start, length) {  // length in minutes
  */
 // when you click on a check-box button it turns blue
 // note: getElementsByClassName returns an array; but to use onclick you have giveo nly one elememt
-// ERROR: after pressing "NEW" none of the checkboxes work
 
 function checkBoxes () {
     let checkBoxes = document.getElementsByClassName("check-box")

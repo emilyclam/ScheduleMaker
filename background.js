@@ -1,5 +1,3 @@
-//let sound = new Audio(chrome.runtime.getURL("bell.wav"))
-
 
 // practice
 //chrome.runtime.sendMessage({greeting: "hellow"})
@@ -22,7 +20,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // duration in seconds
 function startTimer(duration) {
-
+    console.log("confirm only once")
     let timer = duration;
     let minutes, seconds, display;
 
@@ -37,14 +35,13 @@ function startTimer(duration) {
         // reset the timer if it reaches 0?
         if (timer <= 0) {
             timer = 0
-            clearInterval()
-            //sound.play()
+                        
 
             // eventually: open the fullscreen.html window
-            chrome.windows.create({
+            //chrome.windows.create({
                 //url: chrome.runtime.getURL("fullscreen.html"),
                 //state: fullscreen
-            });
+            //});
         }
         else {
             timer--;
