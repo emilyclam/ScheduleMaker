@@ -17,14 +17,10 @@ chrome.runtime.onConnect.addListener((port) => {
     })
 })
 
-// what happens when "done" is clicked?
-compBtn.onclick = () => {
-    alert("cool beans")
-}
-
 // opens the schedule editor
 openSchedBtn.onclick = () => {
-    chrome.windows.create({
+    chrome.tabs.create({
         url: chrome.runtime.getURL("popup.html")
+        // make this open a 
     })
 }

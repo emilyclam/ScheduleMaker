@@ -6,7 +6,6 @@
 body {
     background-color: lightgray;
     width: 250px;
-    height: 180px;
 }
 
 button {
@@ -82,14 +81,6 @@ button:hover {
 
 .mark button {
     width: 50%;
-    
-}
-
-#comp {
-    background-color: lightgreen;
-}
-
-#incomp {
     
 }
 

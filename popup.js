@@ -23,13 +23,20 @@
  * X the info on the timer saves when you close an come back
  * - ui/ux = what happens when the timer reaches 0?
  * X---> alarm sounds!
- * X---> there's a popup that covers the entire window that asks if you're done. (done or continue working). 
- * ---> if you press continue, it asks you to set another timer.
- * ---> if you press done, then it checks that box off (add .checked to it) and asks if you want to start the next activity?
- * ---> also, when you press done, it records the actual length of the activity? 
- * - how can i make all values automatically save once you press new? (so you don't have to press enter everytime)
+ * X how can i make all values automatically save once you press new? (so you don't have to press enter everytime)
  * X add in the "dashboard" in the beginning.
  * - make the items moveable!
+ * 
+ * - when alarm = 0: can i stop the countdown from the background timer?
+ * - simple.js: in order to stop the alarm, you press one of the controls buttons
+ *  - back --> resets that assignment (same length)
+ *      - on popup.js, it doesn't create a new assignment, it just changes the length?
+ *  - pause --> stops the alarm, and timer sits at 0
+ *  - next --> starts timer on next assignment
+ *      - in order to move on, you have to press next
+ *      - pressing this also marks it complete on the schedule table
+ 
+ * 
  * 
  * 
  * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
@@ -38,14 +45,8 @@
  *      - smooth fade in/fade out
  *      - change the mouse
  * 
- * ISSUE:
- * - pressing "new" will save all rows but the last row. the edit/save button that i plan on
- * adding will hopefully fix this
  * 
  * LATER
- * - if: in order to change something, you have to click an edit button which will than allo wyou to change the input values
- *      - so there'll be a button on the right that says edit/done
- *      - in order to make the field unedittable, set the placeholder value and then do: disabled="true"
  * - right now the current bar's opacity also changes when the checkbox is chekced... figure out if i'm okay with this
  * - user is able to choose the sound of the alarm 
  * - the welcome bar --
@@ -54,7 +55,6 @@
 
 
 // main
-setWelcome()
 checkBoxes()
 setStarts()
 editCells()
@@ -102,40 +102,22 @@ sound.play()
 
 
 /*
- * WELCOME BAR
- * set the current date and time
- */
-
-// it's nice putting things in functions so i am able to reuse the same variable names for different things...
-function setWelcome() {
-    let date_cell = document.getElementById("date")
-    let time_cell = document.getElementById("time")
-
-    let today = new Date();
-    let d = today.getDate();
-    let m = today.getMonth();
-    var y = today.getFullYear();
-    date_cell.innerHTML = m + '/' + d + '/' + y;
-
-    let h = today.getHours();
-    let ampm = 'AM'
-    if (h > 12) {
-        ampm = 'PM'
-        h -= 12
-    }
-    m = today.getMinutes()
-    m = m < 10 ? '0' + m : m
-    time_cell.innerHTML = h + ':' + m + ' ' + ampm
-}
-
-
-
-/*
 * "NEW" BUTTON
 */
 document.getElementById("new").onclick = function() {
-    document.getElementById("schedule").innerHTML += "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' placeholder='0'></td></tr>"
-       
+    // saving values as placeholder
+    let acts = document.getElementsByClassName('activity-cell');
+    let lengths = document.getElementsByClassName('length-cell');
+    console.log("hey")
+    for (let i = 0; i < acts.length; i++) {
+        acts[i].placeholder = acts[i].value;
+        lengths[i].placeholder = lengths[i].value;
+    }
+    // in the future i'll get rid of all placeholder things cus i don't think it's necessary.. but i'm too lazy rn
+
+
+    let rows = document.getElementsByClassName("row")
+    rows[rows.length-1].insertAdjacentHTML('afterend', "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' value='0'></td></tr>") 
     checkBoxes()
     setStarts()
     editCells()
@@ -288,6 +270,15 @@ let first = true
 
 
 go_btn.onclick = () => {
+
+    // save all the values in activity and length as placeholders
+    let acts = document.getElementsByClassName('activity-cell');
+    let lengths = document.getElementsByClassName('length-cell');
+    console.log("hey")
+    for (let i = 0; i < acts.length; i++) {
+        acts[i].placeholder = acts[i].value;
+        lengths[i].placeholder = lengths[i].value;
+    }
 
     // pause
     if (go_btn.classList.contains('running')) {

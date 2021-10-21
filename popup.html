@@ -8,18 +8,9 @@
             <h3>Schedule Maker 1.0</h3>
         </section>
         <section class="current">
-            <div class="top-bar welcome" style="display: none;">
-                <div class="greeting">Hello, Emily</div>
-                <div class="info">
-                    <div id="date"></div>
-                    <div id="time"></div>
-                </div>
-            </div>
             <div class="working top-bar">
-                <!--how do i do a timer?-->
-                <div class="clock">timer</div>
+                <div class="clock">00:00</div>
                 <div class="activity">activity</div>
-                <div class="box"><button class="check-box"></button></div>
             </div>
         </section>
         <section class="table">
@@ -34,22 +25,13 @@
                     <th>Start</th>
                     <th>Activity</th>
                     <th id="len">length (min)</th>
-                    <th class="edit">edit</th>
                 </tr>
                 <tr class="row" draggable="true">
                     <td><button class="check-box"></button></td>
                     <td class="start-cell">2:15</td>
-                    <td><input class="activity-cell" type="text" id="test" placeholder="poop"></td>
-                    <td><input class="length-cell" type="number" min="1" placeholder="5"></td>
-                    <td class="edit"><button>edit</button></td>
-                </tr>
-                <!--<tr class="row" draggable="true">
-                    <td><button class="check-box"></button></td>
-                    <td class="start-cell"></td>
                     <td><input class="activity-cell" type="text" id="test"></td>
-                    <td><input class="length-cell" type="number" min="1" placeholder="20"></td>
-                    <td class="edit"></td>
-                </tr>-->
+                    <td><input class="length-cell" type="number" min="1" value="0"></td>
+                </tr>
             </table>
         </section>
 

@@ -7,6 +7,7 @@ body {
     width: 600px;
     height: 400px;
     padding: 30px;
+    background-color: lightgray;
 }
 
 button {
@@ -71,10 +72,7 @@ input::placeholder {
 /* SECTION: CURRENT BAR */
 .current {
     margin: 20px 0;
-    position: sticky;
-    top: 20px;
     background-color: lightgray;
-    font-size: 20px;
     padding: 5px;
     height: 50px;
 }
@@ -82,48 +80,26 @@ input::placeholder {
 .top-bar {
     display: flex;
     align-items: center;
+    border: 1px solid gray;
 }
 
 .top-bar div {
-    margin: 5px;
-    padding: 5px;
+    padding: 10px;
 }
-
-/* WELCOME MODE */
-.welcome {
-    align-items:center;
-}
-
-.greeting {
-    text-transform: uppercase;
-    font-weight: bold;
-    color: rgb(105, 105, 105);
-    letter-spacing: 2px;
-    float: left;
-}
-
-.info {
-    font-size: 15px;
-    float: right;
-}
-
-/* WORKING MODE */
 
 .current .clock {
     width: 100px;
     background-color: gray;
     text-align: center;
     color: white;
+    font-size: 25px;
+    letter-spacing: 0.2rem;
 }
 
-.current .activity {
-   width: 300px;
+.activity {
+    font-size: 15px;
+    color: gray;
 }
-
-.current .check-box {
-    width: 50px;
-}
-
 
 /* SECTION: TABLE HEADER */
 .table-bar {
@@ -163,27 +139,32 @@ input::placeholder {
     text-align: left;
     font-size: 15px;
     margin-top: 10px;
-    border-collapse: collapse;
-    border: none;
+}
+
+#schedule input {
+    color: #5e5e5e;
 }
 
 th {
     color: darkgray;
     border: none;
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 11px;
 }
 
 td {
     border: inherit;
     padding: 2px 15px;
     height: 30px;
-    border: solid lightgray 1px;
+    color: #5e5e5e;
 }
 
 tr {
-    border: solid lightgray 1px;
+    border: solid darkgray 1px;
 }
 
-td .length-cell {
+.length-cell {
     width: 100px;
 }
 

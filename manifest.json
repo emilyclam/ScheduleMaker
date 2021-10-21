@@ -4,10 +4,11 @@
     "version": "1.0",
     "manifest_version": 3,
     "action": {
-        "default_popup": "simple.html"
+        "default_popup": "popup.html"
     },
     "permissions": [
-        "storage"
+        "storage",
+        "tabs"
     ],
     "background": {
         "service_worker": "background.js"
