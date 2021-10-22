@@ -32,7 +32,7 @@
  * - simple.js: in order to stop the alarm, you press one of the controls buttons
  *  - back --> resets that assignment (same length)
  *      - on popup.js, it doesn't create a new assignment, it just changes the length?
- *  - pause --> stops the alarm, and timer sits at 0
+ *  X pause --> stops the alarm, and timer sits at 0
  *  - next --> starts timer on next assignment
  *      - in order to move on, you have to press next
  *      - pressing this also marks it complete on the schedule table
@@ -107,7 +107,7 @@ chrome.storage.sync.get('activity', function(data) {
 document.getElementById("new").onclick = function() {
 
     let rows = document.getElementsByClassName("row")
-    rows[rows.length-1].insertAdjacentHTML('afterend', "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' value='0'></td></tr>") 
+    rows[rows.length-1].insertAdjacentHTML('afterend', "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td></tr>") 
     checkBoxes()
     setStarts()
     
@@ -206,12 +206,9 @@ function checkBoxes () {
 // find the current activity's corresponding row + checkbox and mark it complete
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    alert(request.action);
     
     // if request.action is "back", send activity length (or i can just do the messaging here?) + change innerHTML
-    if (request.action == 'back') {
-
-    }
+    
 
     // if request.action is "next", mark that activity as complete and [...]
     
@@ -264,7 +261,8 @@ go_btn.onclick = () => {
     // it's kind of annoying that it's sent in seconds
     chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});  // tells bg script what time is shown
     chrome.storage.sync.set({'activity': curr_act.innerHTML}); // put current activity in memory
-
+    console.log("saving: " + this_row.getElementsByClassName("length-cell")[0].value)
+    chrome.storage.sync.set({'length' : this_row.getElementsByClassName("length-cell")[0].value})
     
     first = false
 }

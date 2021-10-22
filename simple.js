@@ -9,36 +9,39 @@ let openSchedBtn = document.getElementById('open-schedule');
 // update activity
 chrome.storage.sync.get('activity', function(data) {
     activity.innerHTML = data.activity;
-})
+});
 
 // constantly updates timer
 chrome.runtime.onConnect.addListener((port) => {
     port.onMessage.addListener((response) => {
         timer.innerHTML = response.time;
-    })
-})
+    });
+});
 
 // opens the schedule editor
 openSchedBtn.onclick = () => {
     chrome.tabs.create({
         url: chrome.runtime.getURL("popup.html")
-        // make this open a 
-    })
+    });
 }
 
 
 // time-toggle buttons
 
 // back (<<)
-backBtn.onClick = () => {
-    // find original length of this activity = x
-    // find activity in table, find what corresponding length-cell says
-
+backBtn.onclick = () => {
     // send a message to bg script to stop that interval
+    chrome.runtime.sendMessage({time: 'stop'});
     
     // send message to bg script to make a new timer of length x
+    chrome.storage.sync.get('length', function(data) {
+        chrome.runtime.sendMessage({time: data.length*60});
+    });
+
+    chrome.runtime.sendMessage({time: 'stop'});  // this doesn't work?
 
     // update length-cell in table, x --> 2x
+
 }
 
 let paused = false
@@ -76,4 +79,6 @@ nextBtn.onclick = () => {
     chrome.runtime.sendMessage({time: 'stop'});
 
     // starts next activity
+    // how do i access the next viable activity+length when popup.js is closed??
+    // i could sync each row in the table individually? but that's what i had initially tried to avoid...
 }

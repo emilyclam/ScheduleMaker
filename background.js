@@ -7,11 +7,14 @@ let this_timer;
 
 // when we receive a message from popup.js, start the timer (input=length)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.time == 'stop') {
-        clearInterval(this_timer)
-    }   
-    else {
-        this_timer = startTimer(request.time)
+    if (request.time) {
+        if (request.time == 'stop') {
+            clearInterval(this_timer)
+        }   
+        else {  // eg a time in the form 00:00
+            console.log("new alamr")
+            this_timer = startTimer(request.time)
+        }
     }
     
 });
@@ -32,6 +35,7 @@ function startTimer(duration) {
         // reset the timer if it reaches 0?
         if (timer <= 0) {
             timer = 0
+            // sound the alarm!! 
         }
         else {
             timer--;
