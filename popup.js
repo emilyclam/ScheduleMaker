@@ -27,6 +27,7 @@
  * X add in the "dashboard" in the beginning.
  * - make the items moveable!
  * 
+ * X pausing the alarm: cancel the current alarm, and when you unpause, just start a new alarm
  * - when alarm = 0: can i stop the countdown from the background timer?
  * - simple.js: in order to stop the alarm, you press one of the controls buttons
  *  - back --> resets that assignment (same length)
@@ -36,7 +37,7 @@
  *      - in order to move on, you have to press next
  *      - pressing this also marks it complete on the schedule table
  
- * 
+ * - i'm thinking of removing the "start" button from the schedule table page
  * 
  * 
  * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
@@ -52,12 +53,17 @@
  * - the welcome bar --
 */
 
+let sound = new Audio(chrome.runtime.getURL("bell.wav"))
+sound.play()
 
+let go_btn = document.getElementsByClassName("start_stop")[0];
+let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
+let curr_act = document.getElementsByClassName("activity")[0];  // activity on top bar
+let first = true;
 
 // main
 checkBoxes()
 setStarts()
-editCells()
 
 // message sending practice
 
@@ -68,9 +74,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     alert("reply" + request.reply)
 })*/
 
-curr_clock = document.getElementsByClassName('clock')[0];
 
-
+// get time from background script
 chrome.runtime.onConnect.addListener((port) => {
     port.onMessage.addListener((response) => {
         curr_clock.innerHTML = response.time;
@@ -84,79 +89,32 @@ chrome.runtime.onConnect.addListener((port) => {
  * the names of all the variables will be standardized
  */
 
-// data table
+// get data table from storage
 chrome.storage.sync.get('whole', function(data) {
     //document.getElementById("schedule").innerHTML = data.whole;
 })
 
-// activity
+// get activity from storage
 chrome.storage.sync.get('activity', function(data) {
     document.getElementsByClassName('activity')[0].innerHTML = data.activity;
 })
 
 
 
-
-let sound = new Audio(chrome.runtime.getURL("bell.wav"))
-sound.play()
-
-
 /*
 * "NEW" BUTTON
 */
 document.getElementById("new").onclick = function() {
-    // saving values as placeholder
-    let acts = document.getElementsByClassName('activity-cell');
-    let lengths = document.getElementsByClassName('length-cell');
-    console.log("hey")
-    for (let i = 0; i < acts.length; i++) {
-        acts[i].placeholder = acts[i].value;
-        lengths[i].placeholder = lengths[i].value;
-    }
-    // in the future i'll get rid of all placeholder things cus i don't think it's necessary.. but i'm too lazy rn
-
 
     let rows = document.getElementsByClassName("row")
     rows[rows.length-1].insertAdjacentHTML('afterend', "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' value='0'></td></tr>") 
     checkBoxes()
     setStarts()
-    editCells()
     
-
-    // i just save the data here for now, but in the future i'll have a 'save' button
     chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
 }
 
 
-
-/**
- * EDITING ACTIVITY OR TIME CELLS
- */
-// when you click on a td you can edit it
-// future: work on a better way to save the cell.value s
-function editCells() {
-    let cells = document.getElementsByTagName("input")
-    for (let i=0; i < cells.length; i++) {
-        document.getElementsByTagName("input")[i].onclick = function() {
-            // get user typing input
-
-            // after clicking on a td, you can press enter to unfocus
-            document.addEventListener('keydown', (event) => {
-
-               if (event.key == "Enter") {
-                    this.blur()
-                    this.placeholder = this.value
-                    // it's annoying that you ahve to press enter for the value to save...
-                    // maybe whenever you press the "new" button it automaically saves everything?
-                    // or in general it just automatically saves everything...
-                }
-
-            }, false)
-
-
-        }
-    }
-}
 
 
 /**
@@ -197,36 +155,31 @@ function getSeconds(string) {
 }
 
 function setStarts() {
+    function setStart(start, length) {  // length in minutes
+        time = start.split(":")
+        hour = parseInt(time[0], 10)
+        min = parseInt(time[1], 10)
+        
+        min += length
+        hour += Math.floor(min/60)
+        min = min % 60
+        time = hour + ":" + min
+    
+        if (min < 10) {
+            min = '0' + min
+            time = hour + ":" + min
+        }
+        return time
+    }
+    
+
     let lengths = document.getElementsByClassName("length-cell")
     let starts = document.getElementsByClassName("start-cell")
     for (let i=0; i < lengths.length-1; i++) {
         let s_cell = starts[i].innerHTML
-        let l_cell = parseInt(lengths[i].placeholder)
+        let l_cell = parseInt(lengths[i].value)
         starts[i+1].innerHTML = setStart(s_cell, l_cell)
     }   
-}
-
-// !this can use some major updating?
-function setStart(start, length) {  // length in minutes
-    time = start.split(":")
-    hour = parseInt(time[0], 10)
-    min = parseInt(time[1], 10)
-    
-    min += length
-    hour += Math.floor(min/60)
-    min = min % 60
-    time = hour + ":" + min
-
-    if (min < 10) {
-        min = '0' + min
-        time = hour + ":" + min
-    }
-
-    // error: starts isn't defined in this scope
-    return time
-    
-
-    
 }
 
 
@@ -249,6 +202,22 @@ function checkBoxes () {
 }
 
 
+// after recieving message from simple.js (wil it send if popup is closed? will it backlog?),
+// find the current activity's corresponding row + checkbox and mark it complete
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    alert(request.action);
+    
+    // if request.action is "back", send activity length (or i can just do the messaging here?) + change innerHTML
+    if (request.action == 'back') {
+
+    }
+
+    // if request.action is "next", mark that activity as complete and [...]
+    
+})
+
+
 /**
  * START BUTTON
  */
@@ -265,68 +234,36 @@ function decideRow() {
     }
 }
 
-let go_btn = document.getElementsByClassName("start_stop")[0];
-let first = true
-
-
 go_btn.onclick = () => {
+    function updateUI(this_row) {
+        // toggle the style
+        go_btn.classList.toggle("running");  // start button
+        this_row.classList.toggle("current-row");
 
-    // save all the values in activity and length as placeholders
-    let acts = document.getElementsByClassName('activity-cell');
-    let lengths = document.getElementsByClassName('length-cell');
-    console.log("hey")
-    for (let i = 0; i < acts.length; i++) {
-        acts[i].placeholder = acts[i].value;
-        lengths[i].placeholder = lengths[i].value;
+        // and change the innerHTML of the bar at the top to match this_row
+        let this_length = this_row.getElementsByClassName("length-cell")[0];
+        curr_act.innerHTML = this_row.getElementsByClassName("activity-cell")[0].value;
+        
+        
+        // this needs to happen any time that a new activity starts (eg NOT when an activity is unpaused)
+        if (first) {
+            curr_clock.innerHTML = timeNotation(parseInt(this_length.value, 10)*60);
+        }
     }
 
     // pause
     if (go_btn.classList.contains('running')) {
-        
-        // will need to send a message to the bg script to pause the timer
-        chrome.runtime.sendMessage({time: 'stop'});
-
-
         go_btn.classList.remove('running')
-        chrome.storage.sync.set({'state': 'paused'})
+        chrome.runtime.sendMessage({time: 'stop'});  // sends a message to the bg script to pause the timer
         return;
     }
-
-    // unpause/start
-    chrome.storage.sync.set({'state': 'running'})
-
-    // check if all inputs are filled out (value/placeholder != none)
-    let cells = document.getElementsByTagName("input")
-    for (let i = 0; i < cells.length; i++) {
-        if (!cells[i].placeholder) {
-            alert("please fill out all input cells first!");
-            return;
-        }
-    }
     
-    // find what the first activity is
-    let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
-    let curr_act = document.getElementsByClassName("activity")[0];  // activity on top bar
-    let this_row = decideRow()
-
-    // toggle the style
-    go_btn.classList.toggle("running");  // start button
-    this_row.classList.toggle("current-row");
-
-    // and change the innerHTML of the bar at the top to match this_row
-    let this_length = this_row.getElementsByClassName("length-cell")[0];
-    curr_act.innerHTML = this_row.getElementsByClassName("activity-cell")[0].placeholder;
-
-    // save the current activity in storage
-    chrome.storage.sync.set({'activity': curr_act.innerHTML});
-
-    if (first) {
-        curr_clock.innerHTML = timeNotation(parseInt(this_length.placeholder, 10)*60);
-    }
-
-
-    // send a message to the bg script
-    chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});
+    let this_row = decideRow()  // this needs to happen any time a new row starts
+    updateUI(this_row)
+    
+    // it's kind of annoying that it's sent in seconds
+    chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});  // tells bg script what time is shown
+    chrome.storage.sync.set({'activity': curr_act.innerHTML}); // put current activity in memory
 
     
     first = false

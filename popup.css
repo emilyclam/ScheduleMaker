@@ -15,6 +15,11 @@ button {
     padding: 5px 15px;
     color: white;
     cursor: pointer;
+    transition: all 0.5s ease-in-out;
+}
+
+button:hover {
+    transition: all 0.5s ease-in-out;
 }
 
 .check-box {
@@ -28,8 +33,9 @@ button {
     background-color: skyblue;
 }
 
-.box .check-box:hover {
+.check-box:hover {
     background-color: lightgray;
+    transition: all 1s, ease-in-out;
 }
 
 input {
@@ -104,7 +110,7 @@ input::placeholder {
 /* SECTION: TABLE HEADER */
 .table-bar {
     display: flex;
-    align-content: space-between;
+    justify-content: space-between;
 }
 
 .start_stop {
@@ -170,6 +176,7 @@ tr {
 
 td:hover {
     background-color: lightskyblue;
+    transition: all 0.5s ease-in-out;
 }
 
 .current-row {
