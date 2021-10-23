@@ -10,9 +10,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.time) {
         if (request.time == 'stop') {
             clearInterval(this_timer)
+            // i'll have to convert this to the alarms api bc this doesn't work for long durations
         }   
         else {  // eg a time in the form 00:00
-            console.log("new alamr")
             this_timer = startTimer(request.time)
         }
     }
@@ -34,8 +34,12 @@ function startTimer(duration) {
 
         // reset the timer if it reaches 0?
         if (timer <= 0) {
-            timer = 0
-            // sound the alarm!! 
+            timer = 0;
+
+            chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+                chrome.tabs.sendMessage(tabs[0].id, {sound: 'on'})
+            });
+
         }
         else {
             timer--;
@@ -45,8 +49,20 @@ function startTimer(duration) {
         // would it be better if i stored it, and then on popup.js accessed it in the storage?
         var port = chrome.runtime.connect({name: 'timer'});
         port.postMessage({time: display});
+        // rn theres a lag where the data is received, would it be better if i did outside?
+        // keep a port receive here, but also have one up above
+
     }
 
     tick();
     return setInterval(tick, 100);
 }
+
+// it's enabled!
+chrome.action.onClicked.addListener((tab) => {
+    console.log("content script active")
+    chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files: ['content.js']
+    })
+})

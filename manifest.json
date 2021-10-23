@@ -4,14 +4,27 @@
     "version": "1.0",
     "manifest_version": 3,
     "action": {
-        "default_popup": "simple.html"
+        "default_popup": "simple.html",
+        "default_icon": "alarm-clock.png"        
     },
     "permissions": [
         "storage",
-        "tabs"
+        "tabs",
+        "activeTab",
+        "scripting"
     ],
     "background": {
         "service_worker": "background.js"
-    }
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"]
+        }
+    ],
+    "web_accessible_resources": [{
+        "resources": ["bell.wav"],
+        "matches": ["<all_urls>"]
+    }]
     
 }

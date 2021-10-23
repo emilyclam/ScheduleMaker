@@ -28,15 +28,16 @@
  * - make the items moveable!
  * 
  * X pausing the alarm: cancel the current alarm, and when you unpause, just start a new alarm
- * - when alarm = 0: can i stop the countdown from the background timer?
+ * X when alarm = 0: can i stop the countdown from the background timer?
  * - simple.js: in order to stop the alarm, you press one of the controls buttons
- *  - back --> resets that assignment (same length)
+ *  X back --> resets that assignment (same length)
  *      - on popup.js, it doesn't create a new assignment, it just changes the length?
  *  X pause --> stops the alarm, and timer sits at 0
  *  - next --> starts timer on next assignment
  *      - in order to move on, you have to press next
  *      - pressing this also marks it complete on the schedule table
- 
+ * - get the audio alarm working 
+
  * - i'm thinking of removing the "start" button from the schedule table page
  * 
  * 
@@ -51,6 +52,10 @@
  * - right now the current bar's opacity also changes when the checkbox is chekced... figure out if i'm okay with this
  * - user is able to choose the sound of the alarm 
  * - the welcome bar --
+ * 
+ * 
+ * icon attribution:
+ * <div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 */
 
 let sound = new Audio(chrome.runtime.getURL("bell.wav"))
@@ -64,6 +69,9 @@ let first = true;
 // main
 checkBoxes()
 setStarts()
+
+
+// experimenting
 
 // message sending practice
 
@@ -261,7 +269,6 @@ go_btn.onclick = () => {
     // it's kind of annoying that it's sent in seconds
     chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});  // tells bg script what time is shown
     chrome.storage.sync.set({'activity': curr_act.innerHTML}); // put current activity in memory
-    console.log("saving: " + this_row.getElementsByClassName("length-cell")[0].value)
     chrome.storage.sync.set({'length' : this_row.getElementsByClassName("length-cell")[0].value})
     
     first = false
