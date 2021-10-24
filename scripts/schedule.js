@@ -98,10 +98,32 @@ chrome.storage.sync.get('whole', function(data) {
 })
 
 // get current activity from storage
-chrome.storage.sync.get('activity', function(data) {
-    document.getElementsByClassName('activity')[0].innerHTML = data.activity;
-})
+function syncActivity() {
+    chrome.storage.sync.get('activity', function(data) {
+        document.getElementsByClassName('activity')[0].innerHTML = data.activity;
+    });
+}
+syncActivity();
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.table == "resync") {
+        // update activity shown in top bar
+        syncActivity();
+        
+        // go through rows, compare with  and add "completed-row"
+        let rows = document.getElementsByClassName('row');
+        chrome.storage.sync.get('tableData', (data) => {
+            console.log(data.tableData);
+            for (let i = 0; i < rows.length; i++) {
+                if (data.tableData[i]["done"] == true) {
+                    if (!rows[i].classList.contains("completed-row")) {
+                        markComplete(rows[i]);
+                    }
+                }
+            }
+        })
+    }
+})
 
 
 /*
@@ -175,7 +197,6 @@ function setStarts() {
         return time
     }
     
-
     let lengths = document.getElementsByClassName("length-cell")
     let starts = document.getElementsByClassName("start-cell")
     for (let i=0; i < lengths.length-1; i++) {
@@ -192,15 +213,18 @@ function setStarts() {
 // when you click on a check-box button it turns blue
 // note: getElementsByClassName returns an array; but to use onclick you have giveo nly one elememt
 
+function markComplete(row) {
+    row.classList.toggle("completed-row");
+    row.children[0].children[0].classList.toggle("checked");
+    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
+}
+
 function checkBoxes () {
     let checkBoxes = document.getElementsByClassName("check-box")
     for (let i=0; i < checkBoxes.length; i++) {
-        document.getElementsByClassName("check-box")[i].onclick = function() {
-            this.classList.toggle("checked")
-            
-            // the row's opacity changes
-            this.parentElement.parentElement.classList.toggle("completed-row")
-            chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
+        //checkBoxes[i].addEventListener('onclick', markComplete(checkBoxes[i].parentElement.parentElement));
+        checkBoxes[i].onclick = () =>{
+            markComplete(checkBoxes[i].parentElement.parentElement)
         }
     }
 }
@@ -251,7 +275,7 @@ go_btn.onclick = () => {
             }
             rowData.push(temp);
         }
-        chrome.storage.sync.set({'test2': rowData})
+        chrome.storage.sync.set({'tableData': rowData})
     }
     
     setStarts()

@@ -7,15 +7,6 @@ let openSchedBtn = document.getElementById('open-schedule');
 
 let paused = false
 
-chrome.storage.sync.get('test', (data) => {
-    
-    for (let i = 1; i <= Object.keys(data.test).length; i++) {
-        if (data.test[i]["activity"] == activity.innerHTML) {
-
-        }
-    }
-})
-
 // update activity
 chrome.storage.sync.get('activity', function(data) {
     activity.innerHTML = data.activity;
@@ -34,6 +25,10 @@ openSchedBtn.onclick = () => {
         url: chrome.runtime.getURL("../pages/schedule.html")
     });
 }
+
+
+
+// i want to check what the current tab, and if it is schedule.html
 
 
 // time-toggle buttons
@@ -85,26 +80,46 @@ nextBtn.onclick = () => {
         // find activity; find row and toggleclass('completed-row')
         // find checkbox and toggleclass('checked')
     chrome.runtime.sendMessage({action: 'next'})
+    chrome.runtime.sendMessage({time: 'stop'});
 
-    chrome.storage.sync.get('test2', (data) => {
-        let d = data.test2
+    chrome.storage.sync.get('tableData', (data) => {
+        let d = data.tableData
         // find current activity
         // go to the next row (obj in the array) and find their activity
-        console.log(d)
         for (let i = 0; i < d.length; i++) {
             if (d[i]["activity"] == activity.innerHTML) {
+                d[i]["done"] = true;
+
+                // also need to update current row (class)
+                
+                // when schedule.html become active, send message: tell it to resync
+                // activity; go through dictionary to mark rows as complete
+                
+                // this doesn't work... maybe i need to add an event listener
+                // it only works when the current tab is scheduleMaker at the same time the next button is clicked
+                var query = { active: true, currentWindow: true };
+                function callback(tabs) {
+                    var currentTab = tabs[0];
+                    if (currentTab.title == "Schedule Maker") {
+                        chrome.runtime.sendMessage({table: 'resync'});
+                    }
+                }
+                chrome.tabs.query(query, callback);
+                chrome.storage.sync.set({'tableData': d})
+                
                 if (i == d.length-1) {
                     alert("yay! no more items in schedule!");
                 }
                 else {
                     // should i update it so it shows the row as complete?
                     if (!d[i+1]["done"]) {
-                         activity.innerHTML = d[i+1]["activity"]
+                        activity.innerHTML = d[i+1]["activity"]
                         let length = d[i+1]["length"]
-                        chrome.runtime.sendMessage({'time': 'stop'})
+                        chrome.storage.sync.set({'activity': activity.innerHTML});
+                        chrome.storage.sync.set({'test2': d})
                         chrome.runtime.sendMessage({'time': length*60})
-                        // yooo it kinda works
-                        // now just gotta find a way to save the changes to schedule.html...
+
+                        
                         break;
                     }
                    
@@ -115,11 +130,4 @@ nextBtn.onclick = () => {
     
     })
 
-
-    // ends current timer (send message to bg)
-    chrome.runtime.sendMessage({time: 'stop'});
-
-    // starts next activity
-    // how do i access the next viable activity+length when schedule.js is closed??
-    // i could sync each row in the table individually? but that's what i had initially tried to avoid...
 }
