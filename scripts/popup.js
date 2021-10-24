@@ -5,6 +5,16 @@ let pauseBtn = document.getElementById('pause');
 let nextBtn = document.getElementById('next');
 let openSchedBtn = document.getElementById('open-schedule');
 
+let paused = false
+
+chrome.storage.sync.get('test', (data) => {
+    
+    for (let i = 1; i <= Object.keys(data.test).length; i++) {
+        if (data.test[i]["activity"] == activity.innerHTML) {
+
+        }
+    }
+})
 
 // update activity
 chrome.storage.sync.get('activity', function(data) {
@@ -38,13 +48,12 @@ backBtn.onclick = () => {
         chrome.runtime.sendMessage({time: data.length*60});
     });
 
-    chrome.runtime.sendMessage({time: 'stop'});  // this doesn't work?
+    chrome.runtime.sendMessage({time: 'stop'});
 
     // update length-cell in table, x --> 2x
 
 }
 
-let paused = false
 
 // pause/unpause (II)
 pauseBtn.onclick = () => {
@@ -76,6 +85,36 @@ nextBtn.onclick = () => {
         // find activity; find row and toggleclass('completed-row')
         // find checkbox and toggleclass('checked')
     chrome.runtime.sendMessage({action: 'next'})
+
+    chrome.storage.sync.get('test2', (data) => {
+        let d = data.test2
+        // find current activity
+        // go to the next row (obj in the array) and find their activity
+        console.log(d)
+        for (let i = 0; i < d.length; i++) {
+            if (d[i]["activity"] == activity.innerHTML) {
+                if (i == d.length-1) {
+                    alert("yay! no more items in schedule!");
+                }
+                else {
+                    // should i update it so it shows the row as complete?
+                    if (!d[i+1]["done"]) {
+                         activity.innerHTML = d[i+1]["activity"]
+                        let length = d[i+1]["length"]
+                        chrome.runtime.sendMessage({'time': 'stop'})
+                        chrome.runtime.sendMessage({'time': length*60})
+                        // yooo it kinda works
+                        // now just gotta find a way to save the changes to schedule.html...
+                        break;
+                    }
+                   
+                    
+                }
+            }
+        }
+    
+    })
+
 
     // ends current timer (send message to bg)
     chrome.runtime.sendMessage({time: 'stop'});

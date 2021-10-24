@@ -21,11 +21,11 @@
  * X how do i make the values save? after the user exits out of the popup, all the data disappears
  * X make the timer run in the background (script)
  * X the info on the timer saves when you close an come back
- * - ui/ux = what happens when the timer reaches 0?
+ * X ui/ux = what happens when the timer reaches 0?
  * X---> alarm sounds!
  * X how can i make all values automatically save once you press new? (so you don't have to press enter everytime)
  * X add in the "dashboard" in the beginning.
- * - make the items moveable!
+ * !!!- make the items moveable! -----------------------------
  * 
  * X pausing the alarm: cancel the current alarm, and when you unpause, just start a new alarm
  * X when alarm = 0: can i stop the countdown from the background timer?
@@ -33,25 +33,24 @@
  *  X back --> resets that assignment (same length)
  *      - on schedule.js, it doesn't create a new assignment, it just changes the length?
  *  X pause --> stops the alarm, and timer sits at 0
- *  - next --> starts timer on next assignment
- *      - in order to move on, you have to press next
+ *  X next --> starts timer on next assignment
  *      - pressing this also marks it complete on the schedule table
- * - get the audio alarm working 
+ * X get the audio alarm working 
 
  * - i'm thinking of removing the "start" button from the schedule table page
- * 
+ *  --> i don't like how the data will only sync to the popup once you press start;
+ * instead, maybe make a "save" button at the button that does it
+ *  --> and you can only control the flow of time through popup
  * 
  * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
  * break that into two rows with the break row in between?)
- * - make the hovering more satisfying:
+ * X make the hovering more satisfying:
  *      - smooth fade in/fade out
  *      - change the mouse
  * 
  * 
  * LATER
- * - right now the current bar's opacity also changes when the checkbox is chekced... figure out if i'm okay with this
  * - user is able to choose the sound of the alarm 
- * - the welcome bar --
  * 
  * 
  * icon attribution:
@@ -59,7 +58,7 @@
 */
 
 let sound = new Audio(chrome.runtime.getURL("../assets/bell.wav"))
-sound.play()
+// i'll need sound later-- if alarm goes off while the current tab is schedule.js, i'll invoke the alarm in here
 
 let go_btn = document.getElementsByClassName("start_stop")[0];
 let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
@@ -71,12 +70,8 @@ checkBoxes()
 setStarts()
 
 
-// experimenting
-
-// message sending practice
-
-//chrome.runtime.sendMessage({greeting: "hey"})
-/*
+/* // message sending practice
+chrome.runtime.sendMessage({greeting: "hey"})
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     alert("greet " + request.greeting)
     alert("reply" + request.reply)
@@ -102,7 +97,7 @@ chrome.storage.sync.get('whole', function(data) {
     //document.getElementById("schedule").innerHTML = data.whole;
 })
 
-// get activity from storage
+// get current activity from storage
 chrome.storage.sync.get('activity', function(data) {
     document.getElementsByClassName('activity')[0].innerHTML = data.activity;
 })
@@ -205,22 +200,10 @@ function checkBoxes () {
             
             // the row's opacity changes
             this.parentElement.parentElement.classList.toggle("completed-row")
+            chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
         }
     }
 }
-
-
-// after recieving message from popup.js (wil it send if popup is closed? will it backlog?),
-// find the current activity's corresponding row + checkbox and mark it complete
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    
-    // if request.action is "back", send activity length (or i can just do the messaging here?) + change innerHTML
-    
-
-    // if request.action is "next", mark that activity as complete and [...]
-    
-})
 
 
 /**
@@ -233,7 +216,7 @@ function decideRow() {
 
     // it'll find the first item that hasn't been checked off
     for (let i = 0; i < rows.length; i++) {
-        if (!rows[i].getElementsByClassName("check-box")[0].classList.contains("checked")) {
+        if (!rows[i].classList.contains("completed-row")) {
             return rows[i];
         }
     }
@@ -255,7 +238,27 @@ go_btn.onclick = () => {
             curr_clock.innerHTML = timeNotation(parseInt(this_length.value, 10)*60);
         }
     }
+    // also run this when 'new' btn is clicked?
+    function saveData() {
+        let rowData = []
+        let rows = document.getElementsByClassName("row");
+        // have an array that holds object; each obj represents a row from the table
+        for (let i = 0; i < rows.length; i++) {
+            let temp = {
+                "done": rows[i].children[0].children[0].classList.contains('checked'),
+                "activity": rows[i].children[2].children[0].value,
+                "length": rows[i].children[3].children[0].value
+            }
+            rowData.push(temp);
+        }
+        chrome.storage.sync.set({'test2': rowData})
+    }
+    
+    setStarts()
+    saveData()
 
+    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
+    
     // pause
     if (go_btn.classList.contains('running')) {
         go_btn.classList.remove('running')
