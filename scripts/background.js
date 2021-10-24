@@ -35,7 +35,7 @@ function startTimer(duration) {
         // reset the timer if it reaches 0?
         if (timer <= 0) {
             timer = 0;
-
+            // check if schedule.html is open; if it is, send the alarm there (do both)
             chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
                 chrome.tabs.sendMessage(tabs[0].id, {sound: 'on'})
             });

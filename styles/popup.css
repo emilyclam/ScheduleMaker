@@ -16,10 +16,13 @@ button {
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 2px;
+    transition: all 0.3s ease-in-out;    
 }
 
 button:hover {
-    cursor: pointer;    
+    background-color: rgb(138, 138, 138);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;    
 }
 
 .content {
@@ -35,12 +38,7 @@ button:hover {
     justify-content: space-evenly;
 }
 
-#back, #next {
-    width: 30%;
-}
-
 .controls button {
-    background-color: darkgray;
     margin: 5px 0px;
     font-weight: bold;
     padding: 4px 6px;
@@ -48,12 +46,28 @@ button:hover {
     letter-spacing: normal;
 }
 
+#back, #next {
+    width: 30%;
+}
+
+#pause {
+    width: 21px;
+}
+
 #back {
     background-color: lightcoral;
 }
 
+#back:hover {
+    background-color: rgb(228, 93, 93);
+}
+
 #next {
     background: lightgreen;
+}
+
+#next:hover {
+    background-color: rgb(87, 236, 87);
 }
 
 .timer {

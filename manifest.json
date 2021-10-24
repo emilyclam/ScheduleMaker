@@ -4,8 +4,8 @@
     "version": "1.0",
     "manifest_version": 3,
     "action": {
-        "default_popup": "simple.html",
-        "default_icon": "alarm-clock.png"        
+        "default_popup": "pages/popup.html",
+        "default_icon": "assets/alarm-clock.png"        
     },
     "permissions": [
         "storage",
@@ -14,16 +14,16 @@
         "scripting"
     ],
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "scripts/background.js"
     },
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": ["content.js"]
+            "js": ["scripts/content.js"]
         }
     ],
     "web_accessible_resources": [{
-        "resources": ["bell.wav"],
+        "resources": ["assets/bell.wav"],
         "matches": ["<all_urls>"]
     }]
     

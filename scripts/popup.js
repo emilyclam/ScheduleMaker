@@ -21,7 +21,7 @@ chrome.runtime.onConnect.addListener((port) => {
 // opens the schedule editor
 openSchedBtn.onclick = () => {
     chrome.tabs.create({
-        url: chrome.runtime.getURL("popup.html")
+        url: chrome.runtime.getURL("../pages/schedule.html")
     });
 }
 
@@ -59,10 +59,12 @@ pauseBtn.onclick = () => {
    
     if (paused) {
         chrome.runtime.sendMessage({time: getSeconds(timer.innerHTML)});  // tells bg script what time is shown
+        pauseBtn.innerHTML = "I I";
         paused = false
     }
     else {
         chrome.runtime.sendMessage({time: 'stop'});
+        pauseBtn.innerHTML = "►"
         paused = true
     }  
 }
@@ -79,6 +81,6 @@ nextBtn.onclick = () => {
     chrome.runtime.sendMessage({time: 'stop'});
 
     // starts next activity
-    // how do i access the next viable activity+length when popup.js is closed??
+    // how do i access the next viable activity+length when schedule.js is closed??
     // i could sync each row in the table individually? but that's what i had initially tried to avoid...
 }

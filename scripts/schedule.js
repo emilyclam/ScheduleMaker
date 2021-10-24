@@ -29,9 +29,9 @@
  * 
  * X pausing the alarm: cancel the current alarm, and when you unpause, just start a new alarm
  * X when alarm = 0: can i stop the countdown from the background timer?
- * - simple.js: in order to stop the alarm, you press one of the controls buttons
+ * X popup.js: in order to stop the alarm, you press one of the controls buttons
  *  X back --> resets that assignment (same length)
- *      - on popup.js, it doesn't create a new assignment, it just changes the length?
+ *      - on schedule.js, it doesn't create a new assignment, it just changes the length?
  *  X pause --> stops the alarm, and timer sits at 0
  *  - next --> starts timer on next assignment
  *      - in order to move on, you have to press next
@@ -58,7 +58,7 @@
  * <div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 */
 
-let sound = new Audio(chrome.runtime.getURL("bell.wav"))
+let sound = new Audio(chrome.runtime.getURL("../assets/bell.wav"))
 sound.play()
 
 let go_btn = document.getElementsByClassName("start_stop")[0];
@@ -210,7 +210,7 @@ function checkBoxes () {
 }
 
 
-// after recieving message from simple.js (wil it send if popup is closed? will it backlog?),
+// after recieving message from popup.js (wil it send if popup is closed? will it backlog?),
 // find the current activity's corresponding row + checkbox and mark it complete
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
