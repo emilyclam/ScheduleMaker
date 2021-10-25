@@ -58,9 +58,8 @@ function startTimer(duration) {
     return setInterval(tick, 100);
 }
 
-// it's enabled!
+// future: update this so it's less weird
 chrome.action.onClicked.addListener((tab) => {
-    console.log("content script active")
     chrome.scripting.executeScript({
         target: {tabId: tab.id},
         files: ['content.js']

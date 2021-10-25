@@ -1,3 +1,9 @@
+/**
+ * organizing:
+ * people put all the functions at the top
+ * and then all the event listeners at the bottom
+ */
+
 let timer = document.getElementsByClassName('timer')[0];
 let activity = document.getElementsByClassName('activity')[0];
 let backBtn = document.getElementById('back');
@@ -19,17 +25,13 @@ chrome.runtime.onConnect.addListener((port) => {
     });
 });
 
+
 // opens the schedule editor
 openSchedBtn.onclick = () => {
     chrome.tabs.create({
         url: chrome.runtime.getURL("../pages/schedule.html")
     });
 }
-
-
-
-// i want to check what the current tab, and if it is schedule.html
-
 
 // time-toggle buttons
 
@@ -84,19 +86,18 @@ nextBtn.onclick = () => {
 
     chrome.storage.sync.get('tableData', (data) => {
         let d = data.tableData
+        console.log(d);
         // find current activity
         // go to the next row (obj in the array) and find their activity
         for (let i = 0; i < d.length; i++) {
-            if (d[i]["activity"] == activity.innerHTML) {
+            if (d[i]["current"] == true) {
                 d[i]["done"] = true;
+                // or i can include a key for "current row", and when i'm unpacking the sync, i can update those attributes
 
                 // also need to update current row (class)
                 
                 // when schedule.html become active, send message: tell it to resync
                 // activity; go through dictionary to mark rows as complete
-                
-                // this doesn't work... maybe i need to add an event listener
-                // it only works when the current tab is scheduleMaker at the same time the next button is clicked
                 var query = { active: true, currentWindow: true };
                 function callback(tabs) {
                     var currentTab = tabs[0];
@@ -105,21 +106,20 @@ nextBtn.onclick = () => {
                     }
                 }
                 chrome.tabs.query(query, callback);
-                chrome.storage.sync.set({'tableData': d})
                 
                 if (i == d.length-1) {
                     alert("yay! no more items in schedule!");
                 }
                 else {
-                    // should i update it so it shows the row as complete?
+                    // this stops if the row below it is completed (even if there are uncompleted rows below that)
                     if (!d[i+1]["done"]) {
                         activity.innerHTML = d[i+1]["activity"]
                         let length = d[i+1]["length"]
                         chrome.storage.sync.set({'activity': activity.innerHTML});
-                        chrome.storage.sync.set({'test2': d})
                         chrome.runtime.sendMessage({'time': length*60})
+                        d[i]["current"] = false;
+                        d[i+1]["current"] = true;
 
-                        
                         break;
                     }
                    
@@ -127,6 +127,7 @@ nextBtn.onclick = () => {
                 }
             }
         }
+        chrome.storage.sync.set({'tableData': d})
     
     })
 

@@ -97,31 +97,52 @@ chrome.storage.sync.get('whole', function(data) {
     //document.getElementById("schedule").innerHTML = data.whole;
 })
 
+document.addEventListener("visibilitychange", function() {
+    if (!document.hidden) {
+        syncTable();
+    }
+});
+
 // get current activity from storage
 function syncActivity() {
     chrome.storage.sync.get('activity', function(data) {
         document.getElementsByClassName('activity')[0].innerHTML = data.activity;
     });
 }
-syncActivity();
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.table == "resync") {
-        // update activity shown in top bar
-        syncActivity();
-        
-        // go through rows, compare with  and add "completed-row"
-        let rows = document.getElementsByClassName('row');
-        chrome.storage.sync.get('tableData', (data) => {
-            console.log(data.tableData);
-            for (let i = 0; i < rows.length; i++) {
-                if (data.tableData[i]["done"] == true) {
-                    if (!rows[i].classList.contains("completed-row")) {
-                        markComplete(rows[i]);
-                    }
+
+function syncTable() {
+    syncActivity();
+    
+    // go through rows, compare with  and add "completed-row"
+    let rows = document.getElementsByClassName('row');
+    chrome.storage.sync.get('tableData', (data) => {
+        for (let i = 0; i < rows.length; i++) {
+            if (data.tableData[i]["done"]) {
+                if (!rows[i].classList.contains("completed-row")) {
+                    markComplete(rows[i]);
                 }
             }
-        })
+            console.log(data.tableData[0])
+            if (data.tableData[i]["current"]) {
+                console.log(i);
+                rows[i].classList.add("current-row");
+            }
+            else {
+                rows[i].classList.remove("current-row");
+                
+            }
+        }
+    })
+}
+
+syncActivity();
+
+
+// resynching the contents of the table
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.table == "resync") {
+        syncTable();
     }
 })
 
@@ -129,7 +150,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 /*
 * "NEW" BUTTON
 */
-document.getElementById("new").onclick = function() {
+document.getElementById("new").addEventListener('click', () => {
 
     let rows = document.getElementsByClassName("row")
     rows[rows.length-1].insertAdjacentHTML('afterend', "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td></tr>") 
@@ -137,7 +158,7 @@ document.getElementById("new").onclick = function() {
     setStarts()
     
     chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
-}
+});
 
 
 
@@ -145,16 +166,9 @@ document.getElementById("new").onclick = function() {
 /**
  * CALCULATE START TIMES
  */
-// calculate the start times of items based on the length and start time of the previous activity
 
 /**
  * the original start time must be manually set by the user
- * times are displayed 00:00
- * when we add minutes to them, they are disected into indivudal variables, hours and mins, and the math is done
- * when it'd plugged into the value, it's put back into string form
- * but when the time changes
- * whenver times or lengths are changed, all the start times underneath it must change...
- * 
  */
 
 // function that takes in seconds and outputs the 00:00 notation (in a string)
@@ -263,7 +277,7 @@ go_btn.onclick = () => {
         }
     }
     // also run this when 'new' btn is clicked?
-    function saveData() {
+    function saveTableData() {
         let rowData = []
         let rows = document.getElementsByClassName("row");
         // have an array that holds object; each obj represents a row from the table
@@ -271,16 +285,16 @@ go_btn.onclick = () => {
             let temp = {
                 "done": rows[i].children[0].children[0].classList.contains('checked'),
                 "activity": rows[i].children[2].children[0].value,
-                "length": rows[i].children[3].children[0].value
+                "length": rows[i].children[3].children[0].value,
+                "current": rows[i].classList.contains("current-row")
             }
             rowData.push(temp);
         }
         chrome.storage.sync.set({'tableData': rowData})
     }
     
-    setStarts()
-    saveData()
-
+    
+    
     chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
     
     // pause
@@ -292,6 +306,8 @@ go_btn.onclick = () => {
     
     let this_row = decideRow()  // this needs to happen any time a new row starts
     updateUI(this_row)
+    saveTableData()
+    setStarts()
     
     // it's kind of annoying that it's sent in seconds
     chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});  // tells bg script what time is shown
