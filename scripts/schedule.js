@@ -25,7 +25,6 @@
  * X---> alarm sounds!
  * X how can i make all values automatically save once you press new? (so you don't have to press enter everytime)
  * X add in the "dashboard" in the beginning.
- * !!!- make the items moveable! -----------------------------
  * 
  * X pausing the alarm: cancel the current alarm, and when you unpause, just start a new alarm
  * X when alarm = 0: can i stop the countdown from the background timer?
@@ -34,24 +33,36 @@
  *      - on schedule.js, it doesn't create a new assignment, it just changes the length?
  *  X pause --> stops the alarm, and timer sits at 0
  *  X next --> starts timer on next assignment
- *      - pressing this also marks it complete on the schedule table
+ *      X pressing this also marks it complete on the schedule table
  * X get the audio alarm working 
-
- * - i'm thinking of removing the "start" button from the schedule table page
- *  --> i don't like how the data will only sync to the popup once you press start;
- * instead, maybe make a "save" button at the button that does it
- *  --> and you can only control the flow of time through popup
  * 
- * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
- * break that into two rows with the break row in between?)
- * X make the hovering more satisfying:
- *      - smooth fade in/fade out
- *      - change the mouse
+ * - make the items moveable!
+ * - start time of the first item is the current time (when you first press start)
+ * X make a save button (sync the table)
+ * X fix the button style + transitions in schedule.html
+ * - timer only runs in mins and secs... fix it so 90min --> 1 hour and 30 min!
+ * - add a "total time" counter at the bottom (hour and mins!)
  * 
+ * 
+ * BUGS
+ * - deciding nex row when (>>) is pressed (rn it only work if the next viable row is directly below)
+        - if you complete them out of order, move the rows around so that they are back in order
+        - what would happen to start time?
+ * X if you edit a row after you press start, and then hit (>>), the changes won't go through
+ *      X implement a save button
+ * - alarm sound is very finnicky... it only works if it's a new page (you opened it after the timer started) and if you've clicked on it
+ * - switch from setInterval() to the alarms api (the service worker becomes inactive after long periods of time)
+ * X back button the length doesn't update
+ *      X if you press the back button when the timer is ucrrently paused, the paused button no longer works
+ * - next button -- if you use the start btn on schedule.html to pause, the "next" btn on popup stops working
+ * - if you use schedule's "start" btn to pause and then unpause, the current row gets unselected (toggled) -- but the length of the time updats
  * 
  * LATER
  * - user is able to choose the sound of the alarm 
- * 
+ * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
+ * break that into two rows with the break row in between?)
+ * - able to delete items
+ * - standardize the sync? (rn i have the large dictionary and i also have seperate "activity", "length", etc)
  * 
  * icon attribution:
  * <div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
@@ -63,7 +74,9 @@ let sound = new Audio(chrome.runtime.getURL("../assets/bell.wav"))
 let go_btn = document.getElementsByClassName("start_stop")[0];
 let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
 let curr_act = document.getElementsByClassName("activity")[0];  // activity on top bar
-let first = true;
+
+const defaultRow = "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td></tr>";
+const defaultSchedule = "<tr><th>done?</th><th>Start</th><th>Activity</th><th id='len'>length (min)</th></tr>" + defaultRow;
 
 // main
 checkBoxes()
@@ -99,7 +112,7 @@ chrome.storage.sync.get('whole', function(data) {
 
 document.addEventListener("visibilitychange", function() {
     if (!document.hidden) {
-        syncTable();
+        //syncTable();
     }
 });
 
@@ -130,7 +143,7 @@ function syncTable() {
             }
             else {
                 rows[i].classList.remove("current-row");
-                
+
             }
         }
     })
@@ -153,7 +166,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 document.getElementById("new").addEventListener('click', () => {
 
     let rows = document.getElementsByClassName("row")
-    rows[rows.length-1].insertAdjacentHTML('afterend', "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'></td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td></tr>") 
+    rows[rows.length-1].insertAdjacentHTML('afterend', defaultRow); 
     checkBoxes()
     setStarts()
     
@@ -260,6 +273,32 @@ function decideRow() {
     }
 }
 
+// eventually i will organize all of my functions
+function saveTableData() {
+    let rowData = []
+    let rows = document.getElementsByClassName("row");
+    // have an array that holds object; each obj represents a row from the table
+    for (let i = 0; i < rows.length; i++) {
+        let temp = {
+            "done": rows[i].children[0].children[0].classList.contains('checked'),
+            "activity": rows[i].children[2].children[0].value,
+            "length": rows[i].children[3].children[0].value,
+            "current": rows[i].classList.contains("current-row")
+        }
+        rowData.push(temp);
+    }
+    chrome.storage.sync.set({'tableData': rowData});
+    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
+}
+
+/**
+ * i really want to get rid of the start button on this page, but
+ * i don't know how i'd implement all these changes if i had to trigger them from the popup page
+ * 
+ * i could chnage it to the dictionary that's synced, and then load all those syncs...
+ * also, if i can do all of this in the bg script (with the help of synching, of course) i think that'd be good/clean?
+ * i don't really know...
+ */
 go_btn.onclick = () => {
     function updateUI(this_row) {
         // toggle the style
@@ -272,30 +311,9 @@ go_btn.onclick = () => {
         
         
         // this needs to happen any time that a new activity starts (eg NOT when an activity is unpaused)
-        if (first) {
-            curr_clock.innerHTML = timeNotation(parseInt(this_length.value, 10)*60);
-        }
+        curr_clock.innerHTML = timeNotation(parseInt(this_length.value, 10)*60);
+        
     }
-    // also run this when 'new' btn is clicked?
-    function saveTableData() {
-        let rowData = []
-        let rows = document.getElementsByClassName("row");
-        // have an array that holds object; each obj represents a row from the table
-        for (let i = 0; i < rows.length; i++) {
-            let temp = {
-                "done": rows[i].children[0].children[0].classList.contains('checked'),
-                "activity": rows[i].children[2].children[0].value,
-                "length": rows[i].children[3].children[0].value,
-                "current": rows[i].classList.contains("current-row")
-            }
-            rowData.push(temp);
-        }
-        chrome.storage.sync.set({'tableData': rowData})
-    }
-    
-    
-    
-    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
     
     // pause
     if (go_btn.classList.contains('running')) {
@@ -313,7 +331,36 @@ go_btn.onclick = () => {
     chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});  // tells bg script what time is shown
     chrome.storage.sync.set({'activity': curr_act.innerHTML}); // put current activity in memory
     chrome.storage.sync.set({'length' : this_row.getElementsByClassName("length-cell")[0].value})
-    
-    first = false
 }
 
+
+/**
+ * BUTTONS AT THE BOTTOM
+ */
+
+// delete button
+document.getElementById("delete").onclick = () => {
+    document.getElementsByClassName("confirm-delete")[0].classList.toggle("visible");
+}
+
+document.getElementsByClassName('confirm-delete')[0].onclick = () => {
+        // god this is a mess and i could brute force my way through, but i really want to go an clean everything up...
+
+    chrome.runtime.sendMessage({'time': 'stop'});
+    chrome.storage.sync.set({'whole': defaultRow});
+    chrome.storage.sync.set({'tableData': ''});
+    chrome.storage.sync.set({'activity': ''});
+    chrome.storage.sync.set({'length': 0});
+    
+    go_btn.classList.remove('running');
+    document.getElementById('schedule').innerHTML = defaultSchedule;
+    document.getElementsByClassName("confirm-delete")[0].classList.toggle("visible");
+    curr_act.innerHTML = '';
+    curr_clock.innerHTML = '00:00';
+
+}
+
+// save button
+document.getElementById("save").onclick = () => {
+    saveTableData();
+}

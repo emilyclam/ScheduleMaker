@@ -43,9 +43,11 @@ backBtn.onclick = () => {
     // send message to bg script to make a new timer of length x
     chrome.storage.sync.get('length', function(data) {
         chrome.runtime.sendMessage({time: data.length*60});
-    });
 
-    chrome.runtime.sendMessage({time: 'stop'});
+        if (paused) {
+            chrome.runtime.sendMessage({time: 'stop'});
+        }
+    });
 
     // update length-cell in table, x --> 2x
 
@@ -86,7 +88,6 @@ nextBtn.onclick = () => {
 
     chrome.storage.sync.get('tableData', (data) => {
         let d = data.tableData
-        console.log(d);
         // find current activity
         // go to the next row (obj in the array) and find their activity
         for (let i = 0; i < d.length; i++) {
@@ -116,6 +117,7 @@ nextBtn.onclick = () => {
                         activity.innerHTML = d[i+1]["activity"]
                         let length = d[i+1]["length"]
                         chrome.storage.sync.set({'activity': activity.innerHTML});
+                        chrome.storage.sync.set({'length': length})
                         chrome.runtime.sendMessage({'time': length*60})
                         d[i]["current"] = false;
                         d[i+1]["current"] = true;

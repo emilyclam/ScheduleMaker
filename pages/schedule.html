@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>Schedule Maker</title>
-        <link rel="stylesheet" href="../styles/schedule.css">
         <link rel="icon" type="image/png" href="../assets/alarm-clock.png">
+        <link rel="stylesheet" href="../styles/schedule.css">
     </head>
     <body>
         <section class="logo">
@@ -35,6 +35,11 @@
                     <td><input class="length-cell" type="number" min="1" value="2"></td>
                 </tr>
             </table>
+            <div class="del-btns">
+                <button id="delete">delete all</button>
+                <button class="confirm-delete">confirm</button>
+            </div>
+            <button id="save">save</button>
         </section>
 
         <script src="../scripts/schedule.js" charset="utf-8"></script>

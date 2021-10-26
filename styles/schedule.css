@@ -5,9 +5,9 @@
 
 body {
     width: 600px;
-    height: 400px;
     padding: 30px;
     background-color: lightgray;
+    margin: auto;
 }
 
 button {
@@ -15,11 +15,11 @@ button {
     padding: 5px 15px;
     color: white;
     cursor: pointer;
-    transition: all 0.5s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 button:hover {
-    transition: all 0.5s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 .check-box {
@@ -31,11 +31,12 @@ button:hover {
 
 .checked {
     background-color: skyblue;
+    transition: all 0.3s, ease-in-out;
 }
 
 .check-box:hover {
     background-color: lightgray;
-    transition: all 1s, ease-in-out;
+    transition: all 0.3s, ease-in-out;
 }
 
 input {
@@ -112,7 +113,7 @@ input::placeholder {
 }
 
 .start_stop {
-    background-color: rgb(95, 224, 95);
+    background-color: rgb(87, 236, 87);
     width: 83%;
 }
 
@@ -161,6 +162,7 @@ td {
     padding: 2px 15px;
     height: 30px;
     color: #5e5e5e;
+    transition: all 0.3s ease-in-out;
 }
 
 tr {
@@ -173,7 +175,7 @@ tr {
 
 td:hover {
     background-color: lightskyblue;
-    transition: all 0.5s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 .current-row {
@@ -184,24 +186,39 @@ td:hover {
     opacity: 0.5;
 }
 
-.edit {
-    border: none;
-}
-
-.edit:hover {
-    background-color: inherit;
-}
-
-.edit button {
-    display: none;
-    background-color: lightgrey;
-}
-
-.edit button:hover {
-    background-color: gray;
-}
-
 #len {
     width: 30px;
 }
 
+.del-btns {
+    float: left;
+    margin-top: 10px;
+}
+
+#delete {
+    background-color: lightcoral;
+    margin-right: 5px;
+}
+
+.confirm-delete {
+    background-color: gray;
+    margin-left: -20px;
+    opacity: 0;
+    
+}
+
+.visible {
+    transition: all 0.3s ease-in-out;
+    margin-left: 0;
+    opacity: 1;
+}
+
+#save {
+    background-color: rgb(87, 236, 87);
+    float: right;
+    margin-top: 10px;
+}
+
+#save:hover {
+    background-color:lightgreen;
+}
