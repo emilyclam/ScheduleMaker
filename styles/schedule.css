@@ -196,18 +196,19 @@ td:hover {
 }
 
 #delete {
-    background-color: lightcoral;
+    background-color: gray;
     margin-right: 5px;
 }
 
 .confirm-delete {
-    background-color: gray;
-    margin-left: -20px;
+    cursor: default;
+    background-color: lightcoral;
+    margin-left: -10px;
     opacity: 0;
-    
 }
 
 .visible {
+    cursor: pointer;
     transition: all 0.3s ease-in-out;
     margin-left: 0;
     opacity: 1;

@@ -56,6 +56,8 @@
  *      X if you press the back button when the timer is ucrrently paused, the paused button no longer works
  * - next button -- if you use the start btn on schedule.html to pause, the "next" btn on popup stops working
  * - if you use schedule's "start" btn to pause and then unpause, the current row gets unselected (toggled) -- but the length of the time updats
+ * - the rows themselves save when you refresh the page, but the values in the inputs DONT
+ * - this may be part of setInterval --> Alarm, but when it is done for too long, it throws errors that make it crash?
  * 
  * LATER
  * - user is able to choose the sound of the alarm 
@@ -107,12 +109,20 @@ chrome.runtime.onConnect.addListener((port) => {
 
 // get data table from storage
 chrome.storage.sync.get('whole', function(data) {
-    //document.getElementById("schedule").innerHTML = data.whole;
+    document.getElementById("schedule").innerHTML = data.whole;
+    chrome.storage.sync.get('tableData', function(data) {
+        let rows = document.getElementsByClassName('row');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].children[2].children[0].value = data.tableData[i]["activity"];
+            rows[i].children[3].children[0].value = data.tableData[i]["length"];
+        }
+        
+    })
 })
 
 document.addEventListener("visibilitychange", function() {
     if (!document.hidden) {
-        //syncTable();
+        syncTable();
     }
 });
 
@@ -289,6 +299,7 @@ function saveTableData() {
     }
     chrome.storage.sync.set({'tableData': rowData});
     chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
+    console.log(document.getElementById("schedule").innerHTML)
 }
 
 /**
@@ -345,18 +356,20 @@ document.getElementById("delete").onclick = () => {
 
 document.getElementsByClassName('confirm-delete')[0].onclick = () => {
         // god this is a mess and i could brute force my way through, but i really want to go an clean everything up...
-
-    chrome.runtime.sendMessage({'time': 'stop'});
-    chrome.storage.sync.set({'whole': defaultRow});
-    chrome.storage.sync.set({'tableData': ''});
-    chrome.storage.sync.set({'activity': ''});
-    chrome.storage.sync.set({'length': 0});
-    
-    go_btn.classList.remove('running');
-    document.getElementById('schedule').innerHTML = defaultSchedule;
-    document.getElementsByClassName("confirm-delete")[0].classList.toggle("visible");
-    curr_act.innerHTML = '';
-    curr_clock.innerHTML = '00:00';
+    if (document.getElementsByClassName('confirm-delete')[0].classList.contains('visible')) {
+        chrome.runtime.sendMessage({'time': 'stop'});
+        chrome.storage.sync.set({'whole': defaultSchedule});
+        chrome.storage.sync.set({'tableData': ''});
+        chrome.storage.sync.set({'activity': ''});
+        chrome.storage.sync.set({'length': 0});
+        
+        go_btn.classList.remove('running');
+        document.getElementById('schedule').innerHTML = defaultSchedule;
+        document.getElementsByClassName("confirm-delete")[0].classList.toggle("visible");
+        curr_act.innerHTML = '';
+        curr_clock.innerHTML = '00:00';
+    }
+ 
 
 }
 

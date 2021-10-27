@@ -134,3 +134,8 @@ nextBtn.onclick = () => {
     })
 
 }
+
+
+// experimenting with alarms
+let tester = chrome.alarms.create("tester", {when: Date.now() + 90000})
+// 90,000 = 15 min
