@@ -56,8 +56,9 @@
  *      X if you press the back button when the timer is ucrrently paused, the paused button no longer works
  * - next button -- if you use the start btn on schedule.html to pause, the "next" btn on popup stops working
  * - if you use schedule's "start" btn to pause and then unpause, the current row gets unselected (toggled) -- but the length of the time updats
- * - the rows themselves save when you refresh the page, but the values in the inputs DONT
+ * X the rows themselves save when you refresh the page, but the values in the inputs DONT
  * - this may be part of setInterval --> Alarm, but when it is done for too long, it throws errors that make it crash?
+ * - checkboxes can be finnicky... (upon refreshing it doesn't work...only works after you press "new"...)
  * 
  * LATER
  * - user is able to choose the sound of the alarm 
@@ -85,14 +86,6 @@ checkBoxes()
 setStarts()
 
 
-/* // message sending practice
-chrome.runtime.sendMessage({greeting: "hey"})
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    alert("greet " + request.greeting)
-    alert("reply" + request.reply)
-})*/
-
-
 // get time from background script
 chrome.runtime.onConnect.addListener((port) => {
     port.onMessage.addListener((response) => {
@@ -107,48 +100,47 @@ chrome.runtime.onConnect.addListener((port) => {
  * the names of all the variables will be standardized
  */
 
-// get data table from storage
-chrome.storage.sync.get('whole', function(data) {
-    document.getElementById("schedule").innerHTML = data.whole;
-    chrome.storage.sync.get('tableData', function(data) {
-        let rows = document.getElementsByClassName('row');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i].children[2].children[0].value = data.tableData[i]["activity"];
-            rows[i].children[3].children[0].value = data.tableData[i]["length"];
-        }
-        
-    })
-})
 
-document.addEventListener("visibilitychange", function() {
-    if (!document.hidden) {
+// automatically synches the entire table when schedule.html is opened
+document.addEventListener('DOMContentLoaded', () => {
+    syncTable();
+    checkBoxes()
+    setStarts()
+
+});
+
+
+// resynching the contents of the table while user is currently on the page
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.table == "resync") {
         syncTable();
     }
 });
 
-// get current activity from storage
-function syncActivity() {
-    chrome.storage.sync.get('activity', function(data) {
-        document.getElementsByClassName('activity')[0].innerHTML = data.activity;
+// retreives saved data and adds visual changes (text, completion, current row) to table
+function syncTable() { 
+    // get's the structure of the table + the non input values
+    chrome.storage.sync.get('whole', function(data) {
+        document.getElementById("schedule").innerHTML = data.whole;
     });
-}
 
-
-function syncTable() {
-    syncActivity();
-    
-    // go through rows, compare with  and add "completed-row"
     let rows = document.getElementsByClassName('row');
     chrome.storage.sync.get('tableData', (data) => {
         for (let i = 0; i < rows.length; i++) {
+            // updates the bar at the top
+            rows[i].getElementsByClassName('activity-cell')[0].value = data.tableData[i]["activity"];
+            rows[i].getElementsByClassName('length-cell')[0].value = data.tableData[i]["length"];
+
+            // marks rows complete
             if (data.tableData[i]["done"]) {
                 if (!rows[i].classList.contains("completed-row")) {
                     markComplete(rows[i]);
                 }
             }
-            console.log(data.tableData[0])
+
+            // finds the current row and highlights it blue
             if (data.tableData[i]["current"]) {
-                console.log(i);
+                document.getElementsByClassName('activity')[0].innerHTML = data.tableData[i]["activity"];
                 rows[i].classList.add("current-row");
             }
             else {
@@ -159,29 +151,38 @@ function syncTable() {
     })
 }
 
-syncActivity();
-
-
-// resynching the contents of the table
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.table == "resync") {
-        syncTable();
+// saves the data into storage
+function saveTableData() {
+    let rowData = []
+    let rows = document.getElementsByClassName("row");
+    // have an array that holds object; each obj represents a row from the table
+    for (let i = 0; i < rows.length; i++) {
+        let temp = {
+            "done": rows[i].children[0].children[0].classList.contains('checked'),
+            "activity": rows[i].children[2].children[0].value,
+            "length": rows[i].children[3].children[0].value,
+            "current": rows[i].classList.contains("current-row")
+        }
+        rowData.push(temp);
     }
-})
-
+    chrome.storage.sync.set({'tableData': rowData});
+    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
+}
 
 /*
 * "NEW" BUTTON
 */
-document.getElementById("new").addEventListener('click', () => {
 
+function addRow() {
     let rows = document.getElementsByClassName("row")
     rows[rows.length-1].insertAdjacentHTML('afterend', defaultRow); 
     checkBoxes()
     setStarts()
     
-    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
-});
+    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
+}
+
+document.getElementById("new").addEventListener('click', addRow);
 
 
 
@@ -216,6 +217,7 @@ function getSeconds(string) {
     return totalSeconds;
 }
 
+// updates the start times
 function setStarts() {
     function setStart(start, length) {  // length in minutes
         time = start.split(":")
@@ -253,13 +255,13 @@ function setStarts() {
 function markComplete(row) {
     row.classList.toggle("completed-row");
     row.children[0].children[0].classList.toggle("checked");
-    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})
+    //chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})  // do i need this?
 }
 
+// makes every checkbox clickable
 function checkBoxes () {
     let checkBoxes = document.getElementsByClassName("check-box")
     for (let i=0; i < checkBoxes.length; i++) {
-        //checkBoxes[i].addEventListener('onclick', markComplete(checkBoxes[i].parentElement.parentElement));
         checkBoxes[i].onclick = () =>{
             markComplete(checkBoxes[i].parentElement.parentElement)
         }
@@ -271,11 +273,9 @@ function checkBoxes () {
  * START BUTTON
  */
 
+// finds the first activity that isn't checked off
 function decideRow() {
-    // decide what the activity is
     let rows = document.getElementsByClassName("row");
-
-    // it'll find the first item that hasn't been checked off
     for (let i = 0; i < rows.length; i++) {
         if (!rows[i].classList.contains("completed-row")) {
             return rows[i];
@@ -283,24 +283,6 @@ function decideRow() {
     }
 }
 
-// eventually i will organize all of my functions
-function saveTableData() {
-    let rowData = []
-    let rows = document.getElementsByClassName("row");
-    // have an array that holds object; each obj represents a row from the table
-    for (let i = 0; i < rows.length; i++) {
-        let temp = {
-            "done": rows[i].children[0].children[0].classList.contains('checked'),
-            "activity": rows[i].children[2].children[0].value,
-            "length": rows[i].children[3].children[0].value,
-            "current": rows[i].classList.contains("current-row")
-        }
-        rowData.push(temp);
-    }
-    chrome.storage.sync.set({'tableData': rowData});
-    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
-    console.log(document.getElementById("schedule").innerHTML)
-}
 
 /**
  * i really want to get rid of the start button on this page, but
@@ -319,11 +301,9 @@ go_btn.onclick = () => {
         // and change the innerHTML of the bar at the top to match this_row
         let this_length = this_row.getElementsByClassName("length-cell")[0];
         curr_act.innerHTML = this_row.getElementsByClassName("activity-cell")[0].value;
-        
-        
+              
         // this needs to happen any time that a new activity starts (eg NOT when an activity is unpaused)
         curr_clock.innerHTML = timeNotation(parseInt(this_length.value, 10)*60);
-        
     }
     
     // pause
@@ -360,8 +340,6 @@ document.getElementsByClassName('confirm-delete')[0].onclick = () => {
         chrome.runtime.sendMessage({'time': 'stop'});
         chrome.storage.sync.set({'whole': defaultSchedule});
         chrome.storage.sync.set({'tableData': ''});
-        chrome.storage.sync.set({'activity': ''});
-        chrome.storage.sync.set({'length': 0});
         
         go_btn.classList.remove('running');
         document.getElementById('schedule').innerHTML = defaultSchedule;
@@ -372,6 +350,31 @@ document.getElementsByClassName('confirm-delete')[0].onclick = () => {
  
 
 }
+
+// put this in a function and run this everytime there's a resync
+// update the completion numbers at the bottom
+let actProg = document.getElementsByClassName('completion')[0].children[1];
+let timeProg = document.getElementsByClassName('completion')[0].children[2];
+
+chrome.storage.sync.get('tableData', function(data) {
+    let actsDone = 0;
+    let totalActs = Object.keys(data.tableData).length;
+    let timeDone = 0;  // in mins
+    let totalTime = 0;  // in mins
+
+    for (let i = 0; i < totalActs; i++) {
+        totalTime += parseInt(data.tableData[i]["length"]);
+        if (data.tableData[i]["done"]) {
+            actsDone++;
+            timeDone += parseInt(data.tableData[i]["length"]);
+        }
+    }
+
+    actProg.innerHTML = `${actsDone}/${totalActs} activities (${Math.round(actsDone/totalActs*100)}%)`;
+    timeProg.innerHTML = `${timeDone}/${totalTime} minutes (${Math.round(timeDone/totalTime*100)}%)`;
+
+});
+
 
 // save button
 document.getElementById("save").onclick = () => {

@@ -4,7 +4,7 @@
 }
 
 body {
-    width: 600px;
+    width: 700px;
     padding: 30px;
     background-color: lightgray;
     margin: auto;
@@ -190,6 +190,32 @@ td:hover {
     width: 30px;
 }
 
+
+/*
+COMPLETION ROW
+*/
+.completion {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.completion p {
+    color: gray;
+    border: none;
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+/*
+BUTTONS AT BOTTOM
+*/
+.bottom-btns {
+    display: flex;
+    justify-content: space-between;
+}
+
 .del-btns {
     float: left;
     margin-top: 10px;
@@ -223,3 +249,4 @@ td:hover {
 #save:hover {
     background-color:lightgreen;
 }
+

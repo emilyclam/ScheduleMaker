@@ -6,7 +6,6 @@
 
 let timer = document.getElementsByClassName('timer')[0];
 let activity = document.getElementsByClassName('activity')[0];
-let backBtn = document.getElementById('back');
 let pauseBtn = document.getElementById('pause');
 let nextBtn = document.getElementById('next');
 let openSchedBtn = document.getElementById('open-schedule');
@@ -14,9 +13,17 @@ let openSchedBtn = document.getElementById('open-schedule');
 let paused = false
 
 // update activity
-chrome.storage.sync.get('activity', function(data) {
-    activity.innerHTML = data.activity;
+
+
+let thisRow;
+chrome.storage.sync.get('tableData', function(data) {
+    thisRow = data.tableData.find(row => row["current"] == true);
+    if (thisRow) {
+            activity.innerHTML = thisRow["activity"];
+
+    }
 });
+
 
 // constantly updates timer
 chrome.runtime.onConnect.addListener((port) => {
@@ -36,18 +43,17 @@ openSchedBtn.onclick = () => {
 // time-toggle buttons
 
 // back (<<)
-backBtn.onclick = () => {
+document.getElementById('back').onclick = () => {
     // send a message to bg script to stop that interval
     chrome.runtime.sendMessage({time: 'stop'});
     
     // send message to bg script to make a new timer of length x
-    chrome.storage.sync.get('length', function(data) {
-        chrome.runtime.sendMessage({time: data.length*60});
+    chrome.runtime.sendMessage({time: thisRow["length"]*60});
 
-        if (paused) {
-            chrome.runtime.sendMessage({time: 'stop'});
-        }
-    });
+    if (paused) {
+        chrome.runtime.sendMessage({time: 'stop'});
+    }
+
 
     // update length-cell in table, x --> 2x
 
@@ -56,12 +62,12 @@ backBtn.onclick = () => {
 
 // pause/unpause (II)
 pauseBtn.onclick = () => {
+    // i can also make this global so i don't have to redefine it in schedule.js
     function getSeconds(string) {
         let time = string.split(":")
         let min = parseInt(time[0], 10)
         let sec = parseInt(time[1], 10)
         let totalSeconds = min*60 + sec;
-    
         return totalSeconds;
     }    
    
@@ -92,13 +98,9 @@ nextBtn.onclick = () => {
         // go to the next row (obj in the array) and find their activity
         for (let i = 0; i < d.length; i++) {
             if (d[i]["current"] == true) {
-                d[i]["done"] = true;
-                // or i can include a key for "current row", and when i'm unpacking the sync, i can update those attributes
+                d[i]["done"] = true;                
 
-                // also need to update current row (class)
-                
-                // when schedule.html become active, send message: tell it to resync
-                // activity; go through dictionary to mark rows as complete
+                // if schedule.html is currently open, send a message to tell it to resync
                 var query = { active: true, currentWindow: true };
                 function callback(tabs) {
                     var currentTab = tabs[0];
