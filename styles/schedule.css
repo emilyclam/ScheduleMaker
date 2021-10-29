@@ -151,10 +151,25 @@ input::placeholder {
 
 th {
     color: darkgray;
-    border: none;
     font-weight: normal;
     text-transform: uppercase;
     font-size: 11px;
+}
+
+.check-header {
+    width: 40px;
+}
+
+.start-header {
+    width: 80px;
+}
+
+.length-header {
+    width: 60px;
+}
+
+tr {
+    border: solid darkgray 1px;
 }
 
 td {
@@ -165,17 +180,28 @@ td {
     transition: all 0.3s ease-in-out;
 }
 
-tr {
-    border: solid darkgray 1px;
-}
-
-.length-cell {
-    width: 100px;
-}
-
 td:hover {
     background-color: lightskyblue;
     transition: all 0.3s ease-in-out;
+}
+
+.length-cell {
+    width: 50px;
+}
+
+.del-row {
+    border: none;
+    padding: 0;
+    width: 0;
+    position: relative;
+    left: 20px;
+    top: 7px;
+    float: right;
+    cursor: pointer;
+}
+
+.del-confirm {
+    color: lightcoral;
 }
 
 .current-row {
@@ -186,9 +212,6 @@ td:hover {
     opacity: 0.5;
 }
 
-#len {
-    width: 30px;
-}
 
 
 /*

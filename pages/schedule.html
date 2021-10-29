@@ -23,16 +23,18 @@
             
             <table id="schedule">
                 <tr>
-                    <th>done?</th>
-                    <th>Start</th>
-                    <th>Activity</th>
-                    <th id="len">length (min)</th>
+                    <th class="check-header"></th>
+                    <th class="start-header">Start</th>
+                    <th class="activity-header">Activity</th>
+                    <th class="length-header">length (min)</th>
+                    <th style="padding: 0"></th>
                 </tr>
                 <tr class="row" draggable="true">
                     <td><button class="check-box"></button></td>
                     <td class="start-cell">2:15</td>
-                    <td><input class="activity-cell"</td>
+                    <td><input class="activity-cell"></td>
                     <td><input class="length-cell" type="number" min="1" value="2"></td>
+                    <td class="del-row"><span>X</span></td>
                 </tr>
             </table>
             <div class="completion">

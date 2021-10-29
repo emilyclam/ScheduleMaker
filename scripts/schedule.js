@@ -41,7 +41,8 @@
  * X make a save button (sync the table)
  * X fix the button style + transitions in schedule.html
  * - timer only runs in mins and secs... fix it so 90min --> 1 hour and 30 min!
- * - add a "total time" counter at the bottom (hour and mins!)
+ * X add a "total time" counter at the bottom (hour and mins!)
+ * X be able to delete activities?
  * 
  * 
  * BUGS
@@ -78,12 +79,8 @@ let go_btn = document.getElementsByClassName("start_stop")[0];
 let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
 let curr_act = document.getElementsByClassName("activity")[0];  // activity on top bar
 
-const defaultRow = "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td></tr>";
-const defaultSchedule = "<tr><th>done?</th><th>Start</th><th>Activity</th><th id='len'>length (min)</th></tr>" + defaultRow;
-
-// main
-checkBoxes()
-setStarts()
+const defaultRow = "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td><td class='del-row'><span>X</span></td></tr>";
+const defaultSchedule = "<tr><th class='check-header'></th><th class='start-header'>Start</th><th class='activity-header'>Activity</th><th class='length-header'>length (min)</th></tr>" + defaultRow;
 
 
 // get time from background script
@@ -104,9 +101,6 @@ chrome.runtime.onConnect.addListener((port) => {
 // automatically synches the entire table when schedule.html is opened
 document.addEventListener('DOMContentLoaded', () => {
     syncTable();
-    checkBoxes()
-    setStarts()
-
 });
 
 
@@ -118,17 +112,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // retreives saved data and adds visual changes (text, completion, current row) to table
+
+// i wodner if it'd be better to split this into multiple different functions? like still have this,
+// but it's composed of smaller functions.
+// becasue sometimes i only want to save one thing (checkboxes; inputs) but i have to call the entire function...
 function syncTable() { 
     // get's the structure of the table + the non input values
+    let rows;
     chrome.storage.sync.get('whole', function(data) {
         document.getElementById("schedule").innerHTML = data.whole;
+        
+        // these have to be here, bc they have to be after the DOM loads in ^
+        rows = document.getElementsByClassName('row');        
+        checkBoxes(rows);
+        autosaveRows(rows);
+        checkDelRow();
     });
 
-    let rows = document.getElementsByClassName('row');
     chrome.storage.sync.get('tableData', (data) => {
+        console.log('getting table data')
         for (let i = 0; i < rows.length; i++) {
             // updates the bar at the top
-            rows[i].getElementsByClassName('activity-cell')[0].value = data.tableData[i]["activity"];
+            rows[i].getElementsByClassName('activity-cell')[0].value = data.tableData[i]["activity"] ? data.tableData[i]["activity"] : "";
             rows[i].getElementsByClassName('length-cell')[0].value = data.tableData[i]["length"];
 
             // marks rows complete
@@ -148,6 +153,9 @@ function syncTable() {
 
             }
         }
+
+        // this has to be here bc it has to occur after tableData is saved
+        calcCompletion();
     })
 }
 
@@ -176,8 +184,12 @@ function saveTableData() {
 function addRow() {
     let rows = document.getElementsByClassName("row")
     rows[rows.length-1].insertAdjacentHTML('afterend', defaultRow); 
-    checkBoxes()
-    setStarts()
+    checkBoxes(rows);
+    checkDelRow();
+    setStarts();
+    autosaveRows(rows);
+    saveTableData();
+    calcCompletion();
     
     chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
 }
@@ -259,11 +271,12 @@ function markComplete(row) {
 }
 
 // makes every checkbox clickable
-function checkBoxes () {
-    let checkBoxes = document.getElementsByClassName("check-box")
-    for (let i=0; i < checkBoxes.length; i++) {
-        checkBoxes[i].onclick = () =>{
-            markComplete(checkBoxes[i].parentElement.parentElement)
+function checkBoxes (rows) {
+    for (let i=0; i < rows.length; i++) {
+        rows[i].children[0].children[0].onclick = () => {
+            markComplete(rows[i]);
+            calcCompletion();
+            saveTableData();
         }
     }
 }
@@ -326,6 +339,43 @@ go_btn.onclick = () => {
 
 
 /**
+ * ROW BUTTONS
+ */
+
+// delete button
+// when mouse is within that row (td:hover --> parent tr --> .del-row)
+// .del-row span = display: table-cell
+// when it's clicked, it turns red
+// if it's clicked again, that row is deleted
+// if you unfocus from it, it goes back to gray
+
+// must be calld every time a new row is added (similar to checkbox)
+function checkDelRow() {
+    let delRowBtns = document.getElementsByClassName('del-row');
+    for (let i = 0; i < delRowBtns.length; i++) {
+        delRowBtns[i].onclick = () => {
+            if (delRowBtns[i].classList.contains('del-confirm')) {
+                delRowBtns[i].parentElement.remove();
+                saveTableData();
+                checkDelRow();
+            }
+            else
+                delRowBtns[i].classList.add('del-confirm');
+        }
+    }
+
+    delRowBtns = document.getElementsByClassName('del-row');
+    for (let i = 0; i < delRowBtns.length; i++) {
+        console.log('mouseout' + i)
+        delRowBtns[i].onmouseout = () => {
+            delRowBtns[i].classList.remove('del-confirm');
+        }
+    }
+}
+
+
+
+/**
  * BUTTONS AT THE BOTTOM
  */
 
@@ -356,27 +406,42 @@ document.getElementsByClassName('confirm-delete')[0].onclick = () => {
 let actProg = document.getElementsByClassName('completion')[0].children[1];
 let timeProg = document.getElementsByClassName('completion')[0].children[2];
 
-chrome.storage.sync.get('tableData', function(data) {
-    let actsDone = 0;
-    let totalActs = Object.keys(data.tableData).length;
-    let timeDone = 0;  // in mins
-    let totalTime = 0;  // in mins
+// WHY IS THIS LIKE THIS
+function calcCompletion() {
+    saveTableData();
+    chrome.storage.sync.get('tableData', function(data) {
+        let actsDone = 0;
+        let totalActs = Object.keys(data.tableData).length;
+        let timeDone = 0;  // in mins
+        let totalTime = 0;  // in mins
 
-    for (let i = 0; i < totalActs; i++) {
-        totalTime += parseInt(data.tableData[i]["length"]);
-        if (data.tableData[i]["done"]) {
-            actsDone++;
-            timeDone += parseInt(data.tableData[i]["length"]);
+        for (let i = 0; i < totalActs; i++) {
+            totalTime += parseInt(data.tableData[i]["length"]);
+            if (data.tableData[i]["done"]) {
+                actsDone++;
+                timeDone += parseInt(data.tableData[i]["length"]);
+            }
         }
-    }
 
-    actProg.innerHTML = `${actsDone}/${totalActs} activities (${Math.round(actsDone/totalActs*100)}%)`;
-    timeProg.innerHTML = `${timeDone}/${totalTime} minutes (${Math.round(timeDone/totalTime*100)}%)`;
+        actProg.innerHTML = `${actsDone}/${totalActs} activities (${Math.round(actsDone/totalActs*100)}%)`;
+        timeProg.innerHTML = `${timeDone}/${totalTime} minutes (${Math.round(timeDone/totalTime*100)}%)`;
+    });
+}
 
-});
 
 
-// save button
+// save button... which doesn't serve a purpose anymore!
 document.getElementById("save").onclick = () => {
     saveTableData();
+    calcCompletion();
+}
+
+// autosave?
+function autosaveRows(rows) {
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].onchange = () => {
+            saveTableData();
+            console.log('save')
+        }
+    }
 }
