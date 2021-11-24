@@ -198,7 +198,13 @@ td:hover {
     top: 7px;
 }
 
-
+.move-col {
+    right: 20px;
+    float: left;
+    cursor: grab;
+    color: gray;
+    user-select: none;
+}
 
 .del-col {
     left: 20px;

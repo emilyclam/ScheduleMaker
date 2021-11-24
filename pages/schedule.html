@@ -17,25 +17,31 @@
         </section>
         <section class="table">
             <div class="table-bar">
-                <button id="start" class="start_stop">start⇳</button> <!--can be toggled?-->
+                <button id="start" class="start_stop">start</button> <!--can be toggled?-->
                 <button id="new">new</button>
             </div>
             
             <table id="schedule">
-                <tr>
-                    <th class="check-header"></th>
-                    <th class="start-header">Start</th>
-                    <th class="activity-header">Activity</th>
-                    <th class="length-header">length (min)</th>
-                    <th style="padding: 0"></th>
-                </tr>
-                <tr class="row" draggable="true">
-                    <td><button class="check-box"></button></td>
-                    <td class="start-cell">2:15</td>
-                    <td><input class="activity-cell"></td>
-                    <td><input class="length-cell" type="number" min="1" value="2"></td>
-                    <td class="floater-col del-col">X</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th style="padding: 0"></th>
+                        <th class="check-header"></th>
+                        <th class="start-header">Start</th>
+                        <th class="activity-header">Activity</th>
+                        <th class="length-header">length (min)</th>
+                        <th style="padding: 0"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row" draggable="true">
+                        <td class="floater-col move-col">P</td>
+                        <td><button class="check-box"></button></td>
+                        <td class="start-cell">2:15</td>
+                        <td><input class="activity-cell"></td>
+                        <td><input class="length-cell" type="number" min="1" value="2"></td>
+                        <td class="floater-col del-col">X</td>
+                    </tr>
+                </tbody>
             </table>
             <div class="completion">
                 <p>completion:</p>

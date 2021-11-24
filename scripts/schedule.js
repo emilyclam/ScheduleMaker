@@ -80,9 +80,7 @@ let go_btn = document.getElementsByClassName("start_stop")[0];
 let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
 let curr_act = document.getElementsByClassName("activity")[0];  // activity on top bar
 
-const defaultRow = "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td><td class='floater-col del-col'><span>X</span></td></tr>";
-const defaultSchedule = "<tr><th class='check-header'></th><th class='start-header'>Start</th><th class='activity-header'>Activity</th><th class='length-header'>length (min)</th></tr>" + defaultRow;
-
+const defaultRow = "<tr class='row'><td class='floater-col move-col'>||||</td><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td><td class='floater-col del-col'>X</td></tr>";
 
 // get time from background script
 chrome.runtime.onConnect.addListener((port) => {
@@ -121,7 +119,7 @@ function syncTable() {
     // get's the structure of the table + the non input values
     let rows;
     chrome.storage.sync.get('whole', function(data) {
-        document.getElementById("schedule").innerHTML = data.whole;
+        document.getElementsByTagName('tbody')[0].innerHTML = data.whole;
         
         // these have to be here, bc they have to be after the DOM loads in ^
         rows = document.getElementsByClassName('row');        
@@ -166,15 +164,15 @@ function saveTableData() {
     // have an array that holds object; each obj represents a row from the table
     for (let i = 0; i < rows.length; i++) {
         let temp = {
-            "done": rows[i].children[0].children[0].classList.contains('checked'),
-            "activity": rows[i].children[2].children[0].value,
-            "length": rows[i].children[3].children[0].value,
+            "done": rows[i].children[1].children[0].classList.contains('checked'),
+            "activity": rows[i].children[3].children[0].value,
+            "length": rows[i].children[4].children[0].value,
             "current": rows[i].classList.contains("current-row")
         }
         rowData.push(temp);
     }
     chrome.storage.sync.set({'tableData': rowData});
-    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
+    chrome.storage.sync.set({'whole': document.getElementsByTagName('tbody')[0].innerHTML});
 }
 
 
@@ -203,7 +201,7 @@ function addRow() {
     saveTableData();
     calcCompletion();
     
-    chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
+    chrome.storage.sync.set({'whole': document.getElementsByTagName('tbody')[0].innerHTML});
 }
 
 document.getElementById("new").addEventListener('click', addRow);
@@ -279,14 +277,14 @@ function setStarts() {
 
 function markComplete(row) {
     row.classList.toggle("completed-row");
-    row.children[0].children[0].classList.toggle("checked");
-    //chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML})  // do i need this?
+    row.children[1].children[0].classList.toggle("checked");
+    //chrome.storage.sync.set({'whole': document.getElementsByTagName('tbody')[0].innerHTML})  // do i need this?
 }
 
 // makes every checkbox clickable
 function checkBoxes (rows) {
     for (let i=0; i < rows.length; i++) {
-        rows[i].children[0].children[0].onclick = () => {
+        rows[i].children[1].children[0].onclick = () => {
             markComplete(rows[i]);
             calcCompletion();
             saveTableData();
@@ -363,12 +361,12 @@ go_btn.onclick = () => {
 // update it so the button only shows when user is hovering over that row
 // button to delete a row!
 function checkDelRow() {
-    let delRowBtns = document.getElementsByClassName('del-col');
-    for (let i = 0; i < delRowBtns.length; i++) {
-        delRowBtns[i].onclick = () => {
+    let delColBtns = document.getElementsByClassName('del-col');
+    for (let i = 0; i < delColBtns.length; i++) {
+        delColBtns[i].onclick = () => {
             // second click --> deletes row
-            if (delRowBtns[i].classList.contains('del-confirm')) {
-                delRowBtns[i].parentElement.remove();
+            if (delColBtns[i].classList.contains('del-confirm')) {
+                delColBtns[i].parentElement.remove();
                 setStarts();
                 calcCompletion();
                 saveTableData();
@@ -376,15 +374,15 @@ function checkDelRow() {
             }
             // first click --> turns red (asks for confirmation)
             else
-                delRowBtns[i].classList.add('del-confirm');
+                delColBtns[i].classList.add('del-confirm');
         }
     }
 
     // red color/confirm goes away once you mouse out
-    delRowBtns = document.getElementsByClassName('del-col');
-    for (let i = 0; i < delRowBtns.length; i++) {
-        delRowBtns[i].onmouseout = () => {
-            delRowBtns[i].classList.remove('del-confirm');
+    delColBtns = document.getElementsByClassName('del-col');
+    for (let i = 0; i < delColBtns.length; i++) {
+        delColBtns[i].onmouseout = () => {
+            delColBtns[i].classList.remove('del-confirm');
         }
     }
 }
@@ -416,14 +414,14 @@ document.getElementById("delete").onclick = () => {
 }
 
 document.getElementsByClassName('confirm-delete')[0].onclick = () => {
-        // god this is a mess and i could brute force my way through, but i really want to go an clean everything up...
+    // god this is a mess and i could brute force my way through, but i really want to go an clean everything up...
     if (document.getElementsByClassName('confirm-delete')[0].classList.contains('visible')) {
         chrome.runtime.sendMessage({'time': 'stop'});
-        chrome.storage.sync.set({'whole': defaultSchedule});
+        chrome.storage.sync.set({'whole': defaultRow});
         chrome.storage.sync.set({'tableData': ''});
         
         go_btn.classList.remove('running');
-        document.getElementById('schedule').innerHTML = defaultSchedule;
+        document.getElementsByTagName('tbody')[0].innerHTML = defaultRow;
         document.getElementsByClassName("confirm-delete")[0].classList.toggle("visible");
         curr_act.innerHTML = '';
         curr_clock.innerHTML = '00:00';
