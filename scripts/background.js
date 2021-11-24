@@ -14,6 +14,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }   
         else {  // eg a time in the form 00:00
             this_timer = startTimer(request.time)
+
+            //make an alarm that'll fire at this.startTime + this.length
+            chrome.alarms.create({when: Date.now() + request.time*1000})
+            console.log('new alarm started. set to be completed ' + Date.now() + request.time*1000)
         }
     }
     
@@ -35,10 +39,12 @@ function startTimer(duration) {
         // reset the timer if it reaches 0?
         if (timer <= 0) {
             timer = 0;
-            // check if schedule.html is open; if it is, send the alarm there (do both)
+            // tells current tab to sound the alarm
             chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-                chrome.tabs.sendMessage(tabs[0].id, {sound: 'on'})
+                //chrome.tabs.sendMessage(tabs[0].id, {sound: 'on'})
             });
+            // tells schedule.html to sound the alarm
+            //chrome.runtime.sendMessage({sound: 'on'});
 
         }
         else {
@@ -58,6 +64,7 @@ function startTimer(duration) {
     return setInterval(tick, 1000);
 }
 
+
 // future: update this so it's less weird
 chrome.action.onClicked.addListener((tab) => {
     chrome.scripting.executeScript({
@@ -68,7 +75,13 @@ chrome.action.onClicked.addListener((tab) => {
 
 
 chrome.alarms.onAlarm.addListener(function() {
-    console.log("dos service worker work?")
+    console.log("timer is done");
+    console.log(Date.now())
+    chrome.runtime.sendMessage({sound: 'on'});
+
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {sound: 'on'})
+    });
 })
 /**
  * alarms won't work. what could work:

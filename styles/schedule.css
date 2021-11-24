@@ -1,6 +1,7 @@
 * {
     margin: 0;
     padding: 0;
+    border-radius: 3px;
 }
 
 body {
@@ -189,13 +190,18 @@ td:hover {
     width: 50px;
 }
 
-.del-row {
+.floater-col {
     border: none;
     padding: 0;
     width: 0;
     position: relative;
-    left: 20px;
     top: 7px;
+}
+
+
+
+.del-col {
+    left: 20px;
     float: right;
     cursor: pointer;
 }
@@ -221,6 +227,7 @@ COMPLETION ROW
     display: flex;
     justify-content: space-between;
     padding: 2px 0;
+    transition: all 0.3s ease-in-out;
 }
 
 .completion p {

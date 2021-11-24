@@ -59,27 +59,28 @@
  * - if you use schedule's "start" btn to pause and then unpause, the current row gets unselected (toggled) -- but the length of the time updats
  * X the rows themselves save when you refresh the page, but the values in the inputs DONT
  * - this may be part of setInterval --> Alarm, but when it is done for too long, it throws errors that make it crash?
- * - checkboxes can be finnicky... (upon refreshing it doesn't work...only works after you press "new"...)
+ * X checkboxes can be finnicky... (upon refreshing it doesn't work...only works after you press "new"...)
+ *      X it was bc of asynch functinos T_Ti worked around it but... i'm sure i'll have to learn how to use callbacks and promises and whatnot in the futre
  * 
  * LATER
  * - user is able to choose the sound of the alarm 
  * - work on incorporating eye breaks! (automatically create a row; if an activity is long enough, it's ok to
  * break that into two rows with the break row in between?)
- * - able to delete items
+ * X able to delete items
  * - standardize the sync? (rn i have the large dictionary and i also have seperate "activity", "length", etc)
  * 
  * icon attribution:
  * <div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 */
 
-let sound = new Audio(chrome.runtime.getURL("../assets/bell.wav"))
+let alarmSound = new Audio(chrome.runtime.getURL("../assets/bell.wav"))
 // i'll need sound later-- if alarm goes off while the current tab is schedule.js, i'll invoke the alarm in here
 
 let go_btn = document.getElementsByClassName("start_stop")[0];
 let curr_clock = document.getElementsByClassName("clock")[0];  // clock on top bar
 let curr_act = document.getElementsByClassName("activity")[0];  // activity on top bar
 
-const defaultRow = "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td><td class='del-row'><span>X</span></td></tr>";
+const defaultRow = "<tr class='row'><td><button class='check-box'></button></td><td class='start-cell'>2:15</td><td><input class='activity-cell'></td><td><input class='length-cell' type='number' min='1' value='1'></td><td class='floater-col del-col'><span>X</span></td></tr>";
 const defaultSchedule = "<tr><th class='check-header'></th><th class='start-header'>Start</th><th class='activity-header'>Activity</th><th class='length-header'>length (min)</th></tr>" + defaultRow;
 
 
@@ -130,7 +131,6 @@ function syncTable() {
     });
 
     chrome.storage.sync.get('tableData', (data) => {
-        console.log('getting table data')
         for (let i = 0; i < rows.length; i++) {
             // updates the bar at the top
             rows[i].getElementsByClassName('activity-cell')[0].value = data.tableData[i]["activity"] ? data.tableData[i]["activity"] : "";
@@ -176,6 +176,18 @@ function saveTableData() {
     chrome.storage.sync.set({'tableData': rowData});
     chrome.storage.sync.set({'whole': document.getElementById("schedule").innerHTML});
 }
+
+
+/** 
+ * RING THE ALARM!
+ * **/
+chrome.runtime.onMessage.addListener((request, response, sendResponse) => {
+    if (request.sound == 'on') {
+        alarmSound.play();
+        console.log("sounding alarm from schedule.js")
+    }
+});
+
 
 /*
 * "NEW" BUTTON
@@ -232,28 +244,29 @@ function getSeconds(string) {
 // updates the start times
 function setStarts() {
     function setStart(start, length) {  // length in minutes
-        time = start.split(":")
-        hour = parseInt(time[0], 10)
-        min = parseInt(time[1], 10)
+        time = start.split(":");
+        hour = parseInt(time[0], 10);
+        min = parseInt(time[1], 10);
         
-        min += length
-        hour += Math.floor(min/60)
-        min = min % 60
-        time = hour + ":" + min
+        min += length;
+        hour += Math.floor(min/60);
+        hour %= 24;
+        min = min % 60;
+        time = hour + ":" + min;
     
         if (min < 10) {
-            min = '0' + min
-            time = hour + ":" + min
+            min = '0' + min;
+            time = hour + ":" + min;
         }
         return time
     }
     
-    let lengths = document.getElementsByClassName("length-cell")
-    let starts = document.getElementsByClassName("start-cell")
+    let lengths = document.getElementsByClassName("length-cell");
+    let starts = document.getElementsByClassName("start-cell");
     for (let i=0; i < lengths.length-1; i++) {
-        let s_cell = starts[i].innerHTML
-        let l_cell = parseInt(lengths[i].value)
-        starts[i+1].innerHTML = setStart(s_cell, l_cell)
+        let s_cell = starts[i].innerHTML;
+        let l_cell = parseInt(lengths[i].value);
+        starts[i+1].innerHTML = setStart(s_cell, l_cell);
     }   
 }
 
@@ -305,12 +318,16 @@ function decideRow() {
  * also, if i can do all of this in the bg script (with the help of synching, of course) i think that'd be good/clean?
  * i don't really know...
  */
+let firstTime = true;
 go_btn.onclick = () => {
     function updateUI(this_row) {
         // toggle the style
-        go_btn.classList.toggle("running");  // start button
-        this_row.classList.toggle("current-row");
+        go_btn.classList.add("running");  // start button
+        this_row.classList.add("current-row");
 
+        if (firstTime) {
+
+        }
         // and change the innerHTML of the bar at the top to match this_row
         let this_length = this_row.getElementsByClassName("length-cell")[0];
         curr_act.innerHTML = this_row.getElementsByClassName("activity-cell")[0].value;
@@ -330,8 +347,9 @@ go_btn.onclick = () => {
     updateUI(this_row)
     saveTableData()
     setStarts()
+    console.log('go button go')
     
-    // it's kind of annoying that it's sent in seconds
+    // start
     chrome.runtime.sendMessage({time: getSeconds(curr_clock.innerHTML)});  // tells bg script what time is shown
     chrome.storage.sync.set({'activity': curr_act.innerHTML}); // put current activity in memory
     chrome.storage.sync.set({'length' : this_row.getElementsByClassName("length-cell")[0].value})
@@ -342,31 +360,29 @@ go_btn.onclick = () => {
  * ROW BUTTONS
  */
 
-// delete button
-// when mouse is within that row (td:hover --> parent tr --> .del-row)
-// .del-row span = display: table-cell
-// when it's clicked, it turns red
-// if it's clicked again, that row is deleted
-// if you unfocus from it, it goes back to gray
-
-// must be calld every time a new row is added (similar to checkbox)
+// update it so the button only shows when user is hovering over that row
+// button to delete a row!
 function checkDelRow() {
-    let delRowBtns = document.getElementsByClassName('del-row');
+    let delRowBtns = document.getElementsByClassName('del-col');
     for (let i = 0; i < delRowBtns.length; i++) {
         delRowBtns[i].onclick = () => {
+            // second click --> deletes row
             if (delRowBtns[i].classList.contains('del-confirm')) {
                 delRowBtns[i].parentElement.remove();
+                setStarts();
+                calcCompletion();
                 saveTableData();
                 checkDelRow();
             }
+            // first click --> turns red (asks for confirmation)
             else
                 delRowBtns[i].classList.add('del-confirm');
         }
     }
 
-    delRowBtns = document.getElementsByClassName('del-row');
+    // red color/confirm goes away once you mouse out
+    delRowBtns = document.getElementsByClassName('del-col');
     for (let i = 0; i < delRowBtns.length; i++) {
-        console.log('mouseout' + i)
         delRowBtns[i].onmouseout = () => {
             delRowBtns[i].classList.remove('del-confirm');
         }
@@ -378,6 +394,21 @@ function checkDelRow() {
 /**
  * BUTTONS AT THE BOTTOM
  */
+
+// get current time; outputs the string
+function getCurrentTime() {
+    let time = new Date();
+    let h = time.getUTCHours() - time.getTimezoneOffset()/60;
+    let m = time.getUTCMinutes();
+    if (h < 0) {
+        h += 24;
+    }
+    if (m < 10) {
+        m = '0'+m;
+    }
+    return `${h}:${m}`;
+}
+
 
 // delete button
 document.getElementById("delete").onclick = () => {
@@ -396,13 +427,14 @@ document.getElementsByClassName('confirm-delete')[0].onclick = () => {
         document.getElementsByClassName("confirm-delete")[0].classList.toggle("visible");
         curr_act.innerHTML = '';
         curr_clock.innerHTML = '00:00';
-    }
- 
 
+        // also set the time on the first activity to the current time
+        document.getElementsByClassName('start-cell')[0].innerHTML = getCurrentTime();
+        calcCompletion();
+    }
 }
 
-// put this in a function and run this everytime there's a resync
-// update the completion numbers at the bottom
+// updates the completion numbers at the bottom
 let actProg = document.getElementsByClassName('completion')[0].children[1];
 let timeProg = document.getElementsByClassName('completion')[0].children[2];
 
@@ -410,6 +442,7 @@ let timeProg = document.getElementsByClassName('completion')[0].children[2];
 function calcCompletion() {
     saveTableData();
     chrome.storage.sync.get('tableData', function(data) {
+        
         let actsDone = 0;
         let totalActs = Object.keys(data.tableData).length;
         let timeDone = 0;  // in mins
@@ -422,9 +455,8 @@ function calcCompletion() {
                 timeDone += parseInt(data.tableData[i]["length"]);
             }
         }
-
         actProg.innerHTML = `${actsDone}/${totalActs} activities (${Math.round(actsDone/totalActs*100)}%)`;
-        timeProg.innerHTML = `${timeDone}/${totalTime} minutes (${Math.round(timeDone/totalTime*100)}%)`;
+        timeProg.innerHTML = `${timeDone}/${totalTime} minutes (${Math.round(timeDone/totalTime*100)}%)`;        
     });
 }
 
@@ -432,6 +464,7 @@ function calcCompletion() {
 
 // save button... which doesn't serve a purpose anymore!
 document.getElementById("save").onclick = () => {
+    setStarts();
     saveTableData();
     calcCompletion();
 }
@@ -441,7 +474,6 @@ function autosaveRows(rows) {
     for (let i = 0; i < rows.length; i++) {
         rows[i].onchange = () => {
             saveTableData();
-            console.log('save')
         }
     }
 }
